@@ -18,7 +18,7 @@ const GAME_HEIGHT = 600;
 
 const GAME_OVER_LINE_Y = 110;
 
-// 화면에서 보이는 실제 바닥 윗면
+// 바닥 윗면
 const FLOOR_TOP = 596;
 
 
@@ -31,10 +31,8 @@ const engine = Engine.create();
 engine.gravity.x = 0;
 engine.gravity.y = 1;
 
-// 멈춘 형태소는 자연스럽게 sleep
 engine.enableSleeping = true;
 
-// 충돌 안정성
 engine.positionIterations = 10;
 engine.velocityIterations = 8;
 engine.constraintIterations = 4;
@@ -174,7 +172,6 @@ const mergeQueue = [];
 
 function randomStartLevel() {
 
-  // 1~3단계만 랜덤으로 등장
   return Math.floor(
     Math.random() * 3
   );
@@ -192,9 +189,8 @@ let nextLevel =
 // 바닥 / 벽
 // ========================================
 
-// 실제 충돌 바닥은 44px지만
-// 대부분 화면 아래에 있어서
-// 화면에는 약 4px만 보임
+// 충돌 바닥은 두껍지만
+// 화면에는 얇게 보이도록 대부분 아래에 배치
 
 const floor = Bodies.rectangle(
   GAME_WIDTH / 2,
@@ -212,11 +208,10 @@ const floor = Bodies.rectangle(
 
     restitution: 0,
 
-    // 형태소가 어느 정도 굴러가면서
-    // 자연스럽게 멈추도록 조절
-    friction: 0.35,
+    // 이전보다 살짝 부드럽게 굴러가게
+    friction: 0.22,
 
-    frictionStatic: 0.45,
+    frictionStatic: 0.3,
 
     render: {
       fillStyle: "#222"
@@ -241,7 +236,7 @@ const leftWall = Bodies.rectangle(
 
     restitution: 0,
 
-    friction: 0.15,
+    friction: 0.12,
 
     render: {
       fillStyle: "#222"
@@ -266,7 +261,7 @@ const rightWall = Bodies.rectangle(
 
     restitution: 0,
 
-    friction: 0.15,
+    friction: 0.12,
 
     render: {
       fillStyle: "#222"
@@ -286,7 +281,7 @@ Composite.add(
 
 
 // ========================================
-// 안전 위치 계산
+// 위치 제한
 // ========================================
 
 function clampX(
@@ -368,17 +363,16 @@ function createFruit(
       {
         label: "fruit",
 
-        // 아주 살짝만 튐
-        restitution: 0.03,
+        // 살짝 통통
+        restitution: 0.06,
 
-        // 핵심:
-        // 적당히 굴러가도록 마찰값 낮춤
-        friction: 0.12,
+        // 부드럽게 굴러감
+        friction: 0.08,
 
-        frictionStatic: 0.22,
+        frictionStatic: 0.16,
 
-        // 움직임이 자연스럽게 감속
-        frictionAir: 0.004,
+        // 감속을 너무 세게 하지 않음
+        frictionAir: 0.0025,
 
         density:
           0.0018 +
@@ -387,7 +381,7 @@ function createFruit(
         slop: 0.04,
 
         // 너무 빨리 sleep 되지 않게
-        sleepThreshold: 80,
+        sleepThreshold: 100,
 
         render: {
           visible: false
@@ -406,8 +400,7 @@ function createFruit(
     Date.now();
 
 
-  // 처음 생성할 때는 스핀 없음.
-  // 이후 충돌로 생기는 자연스러운 회전은 허용.
+  // 처음 생성될 때는 스핀 없음
   Body.setAngularVelocity(
     body,
     0
@@ -453,10 +446,7 @@ Events.on(
       );
 
 
-    // ------------------------------------
-    // 떨어진 형태소
-    // ------------------------------------
-
+    // 실제 형태소
     bodies.forEach(
       function (body) {
 
@@ -501,7 +491,7 @@ Events.on(
         );
 
 
-        // 자연스럽게 실제 회전 표시
+        // 자연스럽게 구르는 느낌
         ctx.rotate(
           body.angle
         );
@@ -538,39 +528,30 @@ Events.on(
     );
 
 
-    // ------------------------------------
-    // 게임오버 빨간선
-    // ------------------------------------
-
+    // 게임오버 선
     ctx.save();
 
     ctx.beginPath();
-
 
     ctx.moveTo(
       0,
       GAME_OVER_LINE_Y
     );
 
-
     ctx.lineTo(
       GAME_WIDTH,
       GAME_OVER_LINE_Y
     );
 
-
     ctx.strokeStyle =
       "#ff3b30";
-
 
     ctx.lineWidth =
       3;
 
-
     ctx.setLineDash(
       [8, 6]
     );
-
 
     ctx.stroke();
 
@@ -582,44 +563,33 @@ Events.on(
     }
 
 
-    // ------------------------------------
-    // 낙하 가이드
-    // ------------------------------------
-
+    // 세로 가이드
     ctx.save();
 
     ctx.beginPath();
-
 
     ctx.moveTo(
       previewX,
       0
     );
 
-
     ctx.lineTo(
       previewX,
       GAME_HEIGHT
     );
 
-
     ctx.strokeStyle =
       "rgba(0, 0, 0, 0.10)";
 
-
     ctx.lineWidth =
       1;
-
 
     ctx.stroke();
 
     ctx.restore();
 
 
-    // ------------------------------------
     // 현재 형태소 미리보기
-    // ------------------------------------
-
     const previewFruit =
       fruitLevels[
         currentLevel
@@ -921,7 +891,6 @@ Events.on(
           a.fruitLevel;
 
 
-        // 마지막 단계는 합체하지 않음
         if (
           level >=
           fruitLevels.length - 1
@@ -930,15 +899,14 @@ Events.on(
         }
 
 
-        // 중복 합체 방지
         a.isMerging = true;
         b.isMerging = true;
 
 
         mergeQueue.push({
-          a: a,
-          b: b,
-          level: level
+          a,
+          b,
+          level
         });
       }
     );
@@ -1012,8 +980,7 @@ function processMergeQueue() {
       );
 
 
-    // 커진 형태소가 바닥에
-    // 박혀서 튕기는 것 방지
+    // 큰 형태소가 바닥에 박히지 않게
     newY =
       Math.min(
         newY - 2,
@@ -1024,7 +991,6 @@ function processMergeQueue() {
       );
 
 
-    // 두 형태소 제거
     Composite.remove(
       engine.world,
       a
@@ -1037,7 +1003,6 @@ function processMergeQueue() {
     );
 
 
-    // 새 형태소 생성
     const merged =
       createFruit(
         newX,
@@ -1046,7 +1011,7 @@ function processMergeQueue() {
       );
 
 
-    // 합체 직후 갑자기 날아가는 것만 방지
+    // 합체 직후에는 갑자기 튀지 않게
     Body.setVelocity(
       merged,
       {
@@ -1101,11 +1066,9 @@ function physicsSafety() {
         ].radius;
 
 
-      // --------------------------------
       // 너무 빠른 이동만 제한
-      // --------------------------------
-
-      const MAX_SPEED = 14;
+      const MAX_SPEED =
+        14;
 
 
       if (
@@ -1133,14 +1096,9 @@ function physicsSafety() {
       }
 
 
-      // --------------------------------
-      // 너무 심한 회전만 제한
-      //
-      // 회전 자체는 허용
-      // --------------------------------
-
+      // 너무 미친 스핀만 제한
       const MAX_ANGULAR_SPEED =
-        0.08;
+        0.12;
 
 
       if (
@@ -1161,10 +1119,7 @@ function physicsSafety() {
       }
 
 
-      // --------------------------------
-      // 정말 아래로 빠진 경우만 복구
-      // --------------------------------
-
+      // 정말 바닥 밑으로 이탈했을 때만 복구
       if (
         body.position.y >
         GAME_HEIGHT + 70
@@ -1203,10 +1158,7 @@ function physicsSafety() {
       }
 
 
-      // --------------------------------
-      // 옆으로 완전히 빠진 경우
-      // --------------------------------
-
+      // 좌우 완전 이탈
       if (
         body.position.x <
           -70 ||
@@ -1244,7 +1196,7 @@ function physicsSafety() {
 
 
 // ========================================
-// 매 물리 프레임 종료 후
+// 매 프레임
 // ========================================
 
 Events.on(
@@ -1253,22 +1205,17 @@ Events.on(
 
   function () {
 
-    // 충돌 이벤트가 끝난 뒤 합체
     processMergeQueue();
 
-
-    // 비정상적인 물리 현상만 제한
     physicsSafety();
 
-
-    // 게임오버 확인
     checkGameOver();
   }
 );
 
 
 // ========================================
-// 게임오버 판정
+// 게임오버 검사
 // ========================================
 
 function checkGameOver() {
@@ -1304,7 +1251,6 @@ function checkGameOver() {
     }
 
 
-    // 막 떨어진 형태소 제외
     if (
       now -
       body.spawnTime <
@@ -1314,7 +1260,6 @@ function checkGameOver() {
     }
 
 
-    // 곧 합체될 형태소 제외
     if (
       body.isMerging
     ) {
