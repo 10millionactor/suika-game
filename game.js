@@ -18,27 +18,25 @@ const GAME_HEIGHT = 600;
 
 const GAME_OVER_LINE_Y = 110;
 
-// 실제 바닥의 윗면
-// 화면에서는 약 4px 정도만 보임
-const FLOOR_Y = 596;
+// 화면에서 보이는 실제 바닥 윗면
+const FLOOR_TOP = 596;
 
 
 // ========================================
-// Matter.js 엔진
+// 엔진
 // ========================================
 
 const engine = Engine.create();
 
-// 멈춘 형태소는 자동으로 sleep
-// → 바들거림 감소
-engine.enableSleeping = true;
-
 engine.gravity.x = 0;
 engine.gravity.y = 1;
 
+// 멈춘 형태소는 자연스럽게 sleep
+engine.enableSleeping = true;
+
 // 충돌 안정성
-engine.positionIterations = 12;
-engine.velocityIterations = 10;
+engine.positionIterations = 10;
+engine.velocityIterations = 8;
 engine.constraintIterations = 4;
 
 
@@ -80,41 +78,49 @@ const fruitLevels = [
     image: "images/01.png",
     score: 1
   },
+
   {
     radius: 27,
     image: "images/02.png",
     score: 3
   },
+
   {
     radius: 35,
     image: "images/03.png",
     score: 6
   },
+
   {
     radius: 44,
     image: "images/04.png",
     score: 10
   },
+
   {
     radius: 54,
     image: "images/05.png",
     score: 15
   },
+
   {
     radius: 65,
     image: "images/06.png",
     score: 21
   },
+
   {
     radius: 78,
     image: "images/07.png",
     score: 28
   },
+
   {
     radius: 92,
     image: "images/08.png",
     score: 36
   },
+
   {
     radius: 108,
     image: "images/09.png",
@@ -147,12 +153,6 @@ let score = 0;
 let previewX =
   GAME_WIDTH / 2;
 
-let currentLevel =
-  randomStartLevel();
-
-let nextLevel =
-  randomStartLevel();
-
 let canDrop = true;
 
 let pointerDown = false;
@@ -164,44 +164,46 @@ let scoreRegistered = false;
 let dangerStartTime = null;
 
 
-// 합체 예약 목록
-// 충돌 이벤트 도중 바로 body를 삭제/생성하지 않음
+// 합체 예약
 const mergeQueue = [];
 
 
 // ========================================
-// 시작 형태소 랜덤
+// 시작 형태소
 // ========================================
 
 function randomStartLevel() {
 
+  // 1~3단계만 랜덤으로 등장
   return Math.floor(
     Math.random() * 3
   );
 }
 
 
-// ========================================
-// 벽 / 바닥
-// ========================================
+let currentLevel =
+  randomStartLevel();
+
+let nextLevel =
+  randomStartLevel();
 
 
-// ------------------------------
-// 바닥
-//
-// 윗면: y = 596
-// 실제 몸체 대부분은 화면 아래에 있음
-// 그래서 화면상 두껍게 보이지 않음
-// ------------------------------
+// ========================================
+// 바닥 / 벽
+// ========================================
+
+// 실제 충돌 바닥은 44px지만
+// 대부분 화면 아래에 있어서
+// 화면에는 약 4px만 보임
 
 const floor = Bodies.rectangle(
   GAME_WIDTH / 2,
 
-  FLOOR_Y + 20,
+  FLOOR_TOP + 22,
 
   GAME_WIDTH + 80,
 
-  40,
+  44,
 
   {
     isStatic: true,
@@ -210,7 +212,11 @@ const floor = Bodies.rectangle(
 
     restitution: 0,
 
-    friction: 0.8,
+    // 형태소가 어느 정도 굴러가면서
+    // 자연스럽게 멈추도록 조절
+    friction: 0.35,
+
+    frictionStatic: 0.45,
 
     render: {
       fillStyle: "#222"
@@ -218,20 +224,15 @@ const floor = Bodies.rectangle(
   }
 );
 
-
-// ------------------------------
-// 왼쪽 벽
-// 대부분 화면 바깥
-// ------------------------------
 
 const leftWall = Bodies.rectangle(
-  -11,
+  -15,
 
   GAME_HEIGHT / 2,
 
-  30,
+  34,
 
-  GAME_HEIGHT + 100,
+  GAME_HEIGHT + 120,
 
   {
     isStatic: true,
@@ -240,7 +241,7 @@ const leftWall = Bodies.rectangle(
 
     restitution: 0,
 
-    friction: 0.5,
+    friction: 0.15,
 
     render: {
       fillStyle: "#222"
@@ -249,18 +250,14 @@ const leftWall = Bodies.rectangle(
 );
 
 
-// ------------------------------
-// 오른쪽 벽
-// ------------------------------
-
 const rightWall = Bodies.rectangle(
-  GAME_WIDTH + 11,
+  GAME_WIDTH + 15,
 
   GAME_HEIGHT / 2,
 
-  30,
+  34,
 
-  GAME_HEIGHT + 100,
+  GAME_HEIGHT + 120,
 
   {
     isStatic: true,
@@ -269,7 +266,7 @@ const rightWall = Bodies.rectangle(
 
     restitution: 0,
 
-    friction: 0.5,
+    friction: 0.15,
 
     render: {
       fillStyle: "#222"
@@ -289,7 +286,7 @@ Composite.add(
 
 
 // ========================================
-// 안전한 X 위치
+// 안전 위치 계산
 // ========================================
 
 function clampX(
@@ -297,21 +294,39 @@ function clampX(
   radius
 ) {
 
-  const min =
-    radius + 5;
+  const minX =
+    radius + 4;
 
-  const max =
+  const maxX =
     GAME_WIDTH -
     radius -
-    5;
+    4;
 
 
   return Math.max(
-    min,
+    minX,
     Math.min(
-      max,
+      maxX,
       x
     )
+  );
+}
+
+
+function clampY(
+  y,
+  radius
+) {
+
+  const maxY =
+    FLOOR_TOP -
+    radius -
+    2;
+
+
+  return Math.min(
+    y,
+    maxY
   );
 }
 
@@ -337,17 +352,10 @@ function createFruit(
     );
 
 
-  // 바닥 속에서 생성되는 것 방지
-  const maximumY =
-    FLOOR_Y -
-    fruit.radius -
-    2;
-
-
   const safeY =
-    Math.min(
+    clampY(
       y,
-      maximumY
+      fruit.radius
     );
 
 
@@ -360,25 +368,26 @@ function createFruit(
       {
         label: "fruit",
 
-        // 튀는 힘 제거
-        restitution: 0,
+        // 아주 살짝만 튐
+        restitution: 0.03,
 
-        friction: 0.22,
+        // 핵심:
+        // 적당히 굴러가도록 마찰값 낮춤
+        friction: 0.12,
 
-        frictionStatic: 0.5,
+        frictionStatic: 0.22,
 
-        // 움직임 안정화
-        frictionAir: 0.01,
+        // 움직임이 자연스럽게 감속
+        frictionAir: 0.004,
 
         density:
           0.0018 +
-          level * 0.00015,
+          level * 0.00012,
 
-        // 작은 위치 오차 허용
-        // 너무 낮으면 바들거림 증가
         slop: 0.04,
 
-        sleepThreshold: 45,
+        // 너무 빨리 sleep 되지 않게
+        sleepThreshold: 80,
 
         render: {
           visible: false
@@ -397,23 +406,20 @@ function createFruit(
     Date.now();
 
 
-  // ==================================
-  // 회전 완전 금지
-  // ==================================
-
-  Body.setInertia(
-    body,
-    Infinity
-  );
-
+  // 처음 생성할 때는 스핀 없음.
+  // 이후 충돌로 생기는 자연스러운 회전은 허용.
   Body.setAngularVelocity(
     body,
     0
   );
 
-  Body.setAngle(
+
+  Body.setVelocity(
     body,
-    0
+    {
+      x: 0,
+      y: 0
+    }
   );
 
 
@@ -447,9 +453,9 @@ Events.on(
       );
 
 
-    // --------------------------------
-    // 실제 형태소
-    // --------------------------------
+    // ------------------------------------
+    // 떨어진 형태소
+    // ------------------------------------
 
     bodies.forEach(
       function (body) {
@@ -461,16 +467,16 @@ Events.on(
         }
 
 
-        const level =
-          body.fruitLevel;
-
-
         const fruit =
-          fruitLevels[level];
+          fruitLevels[
+            body.fruitLevel
+          ];
 
 
         const img =
-          fruitImages[level];
+          fruitImages[
+            body.fruitLevel
+          ];
 
 
         if (
@@ -495,8 +501,10 @@ Events.on(
         );
 
 
-        // ★ 일부러 ctx.rotate() 없음
-        // 이미지가 빙글빙글 돌지 않음
+        // 자연스럽게 실제 회전 표시
+        ctx.rotate(
+          body.angle
+        );
 
 
         ctx.beginPath();
@@ -530,33 +538,39 @@ Events.on(
     );
 
 
-    // --------------------------------
-    // 빨간 게임오버 선
-    // --------------------------------
+    // ------------------------------------
+    // 게임오버 빨간선
+    // ------------------------------------
 
     ctx.save();
 
     ctx.beginPath();
+
 
     ctx.moveTo(
       0,
       GAME_OVER_LINE_Y
     );
 
+
     ctx.lineTo(
       GAME_WIDTH,
       GAME_OVER_LINE_Y
     );
 
+
     ctx.strokeStyle =
       "#ff3b30";
+
 
     ctx.lineWidth =
       3;
 
+
     ctx.setLineDash(
       [8, 6]
     );
+
 
     ctx.stroke();
 
@@ -568,61 +582,66 @@ Events.on(
     }
 
 
-    // --------------------------------
-    // 낙하 위치 가이드
-    // --------------------------------
+    // ------------------------------------
+    // 낙하 가이드
+    // ------------------------------------
 
     ctx.save();
 
     ctx.beginPath();
+
 
     ctx.moveTo(
       previewX,
       0
     );
 
+
     ctx.lineTo(
       previewX,
       GAME_HEIGHT
     );
 
+
     ctx.strokeStyle =
-      "rgba(0,0,0,0.10)";
+      "rgba(0, 0, 0, 0.10)";
+
 
     ctx.lineWidth =
       1;
+
 
     ctx.stroke();
 
     ctx.restore();
 
 
-    // --------------------------------
-    // 위쪽 미리보기
-    // --------------------------------
+    // ------------------------------------
+    // 현재 형태소 미리보기
+    // ------------------------------------
 
-    const fruit =
+    const previewFruit =
       fruitLevels[
         currentLevel
       ];
 
 
-    const img =
+    const previewImage =
       fruitImages[
         currentLevel
       ];
 
 
     if (
-      !img ||
-      !img.complete
+      !previewImage ||
+      !previewImage.complete
     ) {
       return;
     }
 
 
-    const size =
-      fruit.radius * 2;
+    const previewSize =
+      previewFruit.radius * 2;
 
 
     ctx.save();
@@ -634,7 +653,9 @@ Events.on(
     ctx.arc(
       previewX,
       45,
-      fruit.radius,
+
+      previewFruit.radius,
+
       0,
       Math.PI * 2
     );
@@ -644,16 +665,16 @@ Events.on(
 
 
     ctx.drawImage(
-      img,
+      previewImage,
 
       previewX -
-        size / 2,
+        previewSize / 2,
 
       45 -
-        size / 2,
+        previewSize / 2,
 
-      size,
-      size
+      previewSize,
+      previewSize
     );
 
 
@@ -663,7 +684,7 @@ Events.on(
 
 
 // ========================================
-// 마우스 / 터치 위치
+// 미리보기 위치
 // ========================================
 
 function updatePreviewPosition(
@@ -706,7 +727,7 @@ function updatePreviewPosition(
 
 
 // ========================================
-// PC + 모바일 조작
+// PC / 모바일 조작
 // ========================================
 
 render.canvas.addEventListener(
@@ -798,7 +819,7 @@ render.canvas.addEventListener(
 
 
 // ========================================
-// 형태소 떨어뜨리기
+// 떨어뜨리기
 // ========================================
 
 function dropFruit() {
@@ -900,7 +921,7 @@ Events.on(
           a.fruitLevel;
 
 
-        // 마지막 단계는 합체 안 함
+        // 마지막 단계는 합체하지 않음
         if (
           level >=
           fruitLevels.length - 1
@@ -926,53 +947,45 @@ Events.on(
 
 
 // ========================================
-// 예약된 합체 처리
+// 합체 처리
 // ========================================
 
 function processMergeQueue() {
-
-  if (
-    mergeQueue.length === 0
-  ) {
-    return;
-  }
-
 
   while (
     mergeQueue.length > 0
   ) {
 
-    const merge =
+    const item =
       mergeQueue.shift();
 
 
     const a =
-      merge.a;
+      item.a;
 
     const b =
-      merge.b;
+      item.b;
 
 
-    // 이미 world에서 없어진 body인지 확인
-    const bodies =
+    const worldBodies =
       Composite.allBodies(
         engine.world
       );
 
 
     if (
-      !bodies.includes(a) ||
-      !bodies.includes(b)
+      !worldBodies.includes(a) ||
+      !worldBodies.includes(b)
     ) {
       continue;
     }
 
 
     const nextLevel =
-      merge.level + 1;
+      item.level + 1;
 
 
-    const newRadius =
+    const nextRadius =
       fruitLevels[
         nextLevel
       ].radius;
@@ -995,33 +1008,23 @@ function processMergeQueue() {
     newX =
       clampX(
         newX,
-        newRadius
+        nextRadius
       );
 
 
-    // ---------------------------------
-    // 새 형태소가 바닥에 박히지 않도록
-    // ---------------------------------
-
-    const lowestSafeY =
-      FLOOR_Y -
-      newRadius -
-      3;
-
-
+    // 커진 형태소가 바닥에
+    // 박혀서 튕기는 것 방지
     newY =
       Math.min(
-        newY,
-        lowestSafeY
+        newY - 2,
+
+        FLOOR_TOP -
+        nextRadius -
+        3
       );
 
 
-    // 합체할 때 아주 약간 위로
-    // 공간을 확보
-    newY -= 2;
-
-
-    // 기존 2개 삭제
+    // 두 형태소 제거
     Composite.remove(
       engine.world,
       a
@@ -1035,7 +1038,7 @@ function processMergeQueue() {
 
 
     // 새 형태소 생성
-    const newFruit =
+    const merged =
       createFruit(
         newX,
         newY,
@@ -1043,9 +1046,9 @@ function processMergeQueue() {
       );
 
 
-    // 합체 직후 속도 없음
+    // 합체 직후 갑자기 날아가는 것만 방지
     Body.setVelocity(
-      newFruit,
+      merged,
       {
         x: 0,
         y: 0
@@ -1054,7 +1057,7 @@ function processMergeQueue() {
 
 
     Body.setAngularVelocity(
-      newFruit,
+      merged,
       0
     );
 
@@ -1071,15 +1074,10 @@ function processMergeQueue() {
 
 
 // ========================================
-// 비정상 이탈만 복구
-//
-// 중요:
-// 매 프레임 위치를 강제로 고치는 게 아님.
-// 진짜 게임판 밖으로 빠진 경우에만 실행.
-// 그래서 바들거림을 만들지 않음.
+// 물리 안전장치
 // ========================================
 
-function emergencyRescue() {
+function physicsSafety() {
 
   const bodies =
     Composite.allBodies(
@@ -1104,12 +1102,72 @@ function emergencyRescue() {
 
 
       // --------------------------------
-      // 아래로 완전히 빠진 경우
+      // 너무 빠른 이동만 제한
+      // --------------------------------
+
+      const MAX_SPEED = 14;
+
+
+      if (
+        body.speed >
+        MAX_SPEED
+      ) {
+
+        const ratio =
+          MAX_SPEED /
+          body.speed;
+
+
+        Body.setVelocity(
+          body,
+          {
+            x:
+              body.velocity.x *
+              ratio,
+
+            y:
+              body.velocity.y *
+              ratio
+          }
+        );
+      }
+
+
+      // --------------------------------
+      // 너무 심한 회전만 제한
+      //
+      // 회전 자체는 허용
+      // --------------------------------
+
+      const MAX_ANGULAR_SPEED =
+        0.08;
+
+
+      if (
+        Math.abs(
+          body.angularVelocity
+        ) >
+        MAX_ANGULAR_SPEED
+      ) {
+
+        Body.setAngularVelocity(
+          body,
+
+          Math.sign(
+            body.angularVelocity
+          ) *
+          MAX_ANGULAR_SPEED
+        );
+      }
+
+
+      // --------------------------------
+      // 정말 아래로 빠진 경우만 복구
       // --------------------------------
 
       if (
         body.position.y >
-        GAME_HEIGHT + 60
+        GAME_HEIGHT + 70
       ) {
 
         Body.setPosition(
@@ -1122,9 +1180,9 @@ function emergencyRescue() {
               ),
 
             y:
-              FLOOR_Y -
+              FLOOR_TOP -
               radius -
-              10
+              8
           }
         );
 
@@ -1142,9 +1200,6 @@ function emergencyRescue() {
           body,
           0
         );
-
-
-        return;
       }
 
 
@@ -1154,10 +1209,10 @@ function emergencyRescue() {
 
       if (
         body.position.x <
-          -50 ||
+          -70 ||
 
         body.position.x >
-          GAME_WIDTH + 50
+          GAME_WIDTH + 70
       ) {
 
         Body.setPosition(
@@ -1179,43 +1234,7 @@ function emergencyRescue() {
           body,
           {
             x: 0,
-            y:
-              Math.min(
-                body.velocity.y,
-                4
-              )
-          }
-        );
-      }
-
-
-      // --------------------------------
-      // 비정상적으로 빠른 속도만 제한
-      // --------------------------------
-
-      const maxSpeed = 14;
-
-
-      if (
-        body.speed >
-        maxSpeed
-      ) {
-
-        const scale =
-          maxSpeed /
-          body.speed;
-
-
-        Body.setVelocity(
-          body,
-          {
-            x:
-              body.velocity.x *
-              scale,
-
-            y:
-              body.velocity.y *
-              scale
+            y: body.velocity.y
           }
         );
       }
@@ -1225,7 +1244,7 @@ function emergencyRescue() {
 
 
 // ========================================
-// 매 물리 프레임 이후
+// 매 물리 프레임 종료 후
 // ========================================
 
 Events.on(
@@ -1234,21 +1253,22 @@ Events.on(
 
   function () {
 
-    // 충돌 처리 끝난 다음 합체
+    // 충돌 이벤트가 끝난 뒤 합체
     processMergeQueue();
 
 
-    // 정말 비정상 이탈했을 때만 복구
-    emergencyRescue();
+    // 비정상적인 물리 현상만 제한
+    physicsSafety();
 
 
+    // 게임오버 확인
     checkGameOver();
   }
 );
 
 
 // ========================================
-// 게임오버 검사
+// 게임오버 판정
 // ========================================
 
 function checkGameOver() {
@@ -1284,7 +1304,7 @@ function checkGameOver() {
     }
 
 
-    // 막 떨어진 형태소는 제외
+    // 막 떨어진 형태소 제외
     if (
       now -
       body.spawnTime <
@@ -1294,7 +1314,7 @@ function checkGameOver() {
     }
 
 
-    // 합체 예정 형태소 제외
+    // 곧 합체될 형태소 제외
     if (
       body.isMerging
     ) {
@@ -1313,8 +1333,6 @@ function checkGameOver() {
       radius;
 
 
-    // 빨간선을 넘어가 있고
-    // 거의 움직이지 않을 때
     if (
       top <
         GAME_OVER_LINE_Y &&
@@ -1349,7 +1367,6 @@ function checkGameOver() {
   }
 
 
-  // 1.5초 이상 계속 선 위에 있으면 게임 종료
   if (
     now -
     dangerStartTime >=
@@ -1454,7 +1471,9 @@ if (registerButton) {
 
       const nickname =
         nicknameInput
-          ? nicknameInput.value.trim()
+          ? nicknameInput
+              .value
+              .trim()
           : "";
 
 
@@ -1553,7 +1572,7 @@ if (registerButton) {
 
 
 // ========================================
-// Enter → 랭킹 등록
+// Enter → 등록
 // ========================================
 
 const nicknameInput =
@@ -1607,7 +1626,7 @@ if (restartButton) {
 
 
 // ========================================
-// 점수 표시
+// 점수
 // ========================================
 
 function updateScore() {
@@ -1627,7 +1646,7 @@ function updateScore() {
 
 
 // ========================================
-// NEXT 표시
+// NEXT
 // ========================================
 
 function updateNextDisplay() {
