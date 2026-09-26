@@ -401,23 +401,9 @@ function updateScore() {
 // =========================
 
 function updateNextDisplay() {
-  const nextElement =
-    document.getElementById("nextFruit");
+  const nextElement = document.getElementById("nextFruit");
 
   if (!nextElement) return;
 
-  const fruit = fruitLevels[nextLevel];
-
-  nextElement.style.width =
-    fruit.radius * 1.2 + "px";
-
-  nextElement.style.height =
-    fruit.radius * 1.2 + "px";
-
-  nextElement.style.backgroundColor =
-    fruit.color;
-
-  nextElement.style.borderRadius = "50%";
+  nextElement.src = fruitLevels[nextLevel].image;
 }
-
-updateNextDisplay();
