@@ -30,24 +30,25 @@ const runner = Runner.create();
 Runner.run(runner, engine);
 
 // =========================
-// 기본 설정
+// 게임 상태
 // =========================
 
 let score = 0;
-
 let previewX = GAME_WIDTH / 2;
-let currentLevel = randomStartLevel();
-let nextLevel = randomStartLevel();
-
 let canDrop = true;
 let isPointerDown = false;
 
-// 처음에는 0~2단계만 랜덤 등장
 function randomStartLevel() {
   return Math.floor(Math.random() * 3);
 }
 
-// 단계별 정보
+let currentLevel = randomStartLevel();
+let nextLevel = randomStartLevel();
+
+// =========================
+// 9단계 이미지
+// =========================
+
 const fruitLevels = [
   { radius: 20, image: "images/01.png", score: 1 },
   { radius: 27, image: "images/02.png", score: 3 },
@@ -59,6 +60,14 @@ const fruitLevels = [
   { radius: 92, image: "images/08.png", score: 36 },
   { radius: 108, image: "images/09.png", score: 50 }
 ];
+
+// 미리보기용 이미지 미리 로딩
+const fruitImages = fruitLevels.map(function (fruit) {
+  const img = new Image();
+  img.src = fruit.image;
+  return img;
+});
+
 // =========================
 // 벽 / 바닥
 // =========================
@@ -129,6 +138,8 @@ function createFruit(x, y, level) {
       render: {
         sprite: {
           texture: fruit.image,
+
+          // 이미지가 256 x 256 기준
           xScale: (fruit.radius * 2) / 256,
           yScale: (fruit.radius * 2) / 256
         }
@@ -143,20 +154,9 @@ function createFruit(x, y, level) {
 
   return body;
 }
-  
 
 // =========================
-// 미리보기 공 이미지 준비
-// =========================
-
-const fruitImages = fruitLevels.map(function (fruit) {
-  const img = new Image();
-  img.src = fruit.image;
-  return img;
-});
-
-// =========================
-// 미리보기 공 그리기
+// 미리보기 이미지
 // =========================
 
 Events.on(render, "afterRender", function () {
@@ -169,12 +169,26 @@ Events.on(render, "afterRender", function () {
   ctx.beginPath();
   ctx.moveTo(previewX, 0);
   ctx.lineTo(previewX, GAME_HEIGHT);
+
   ctx.strokeStyle = "rgba(0, 0, 0, 0.12)";
   ctx.lineWidth = 1;
   ctx.stroke();
 
   // 미리보기 이미지
   if (img.complete) {
+    ctx.save();
+
+    ctx.beginPath();
+    ctx.arc(
+      previewX,
+      45,
+      fruit.radius,
+      0,
+      Math.PI * 2
+    );
+
+    ctx.clip();
+
     ctx.drawImage(
       img,
       previewX - fruit.radius,
@@ -182,10 +196,13 @@ Events.on(render, "afterRender", function () {
       fruit.radius * 2,
       fruit.radius * 2
     );
+
+    ctx.restore();
   }
 });
+
 // =========================
-// 위치 조절
+// 미리보기 위치 조절
 // =========================
 
 function updatePreviewPosition(clientX) {
@@ -207,7 +224,7 @@ function updatePreviewPosition(clientX) {
 }
 
 // =========================
-// PC 마우스
+// PC 조작
 // =========================
 
 render.canvas.addEventListener(
@@ -239,7 +256,7 @@ render.canvas.addEventListener(
 );
 
 // =========================
-// 모바일 터치
+// 모바일 조작
 // =========================
 
 render.canvas.addEventListener(
@@ -303,13 +320,11 @@ function dropFruit() {
     levelToDrop
   );
 
-  // 다음 공으로 변경
   currentLevel = nextLevel;
   nextLevel = randomStartLevel();
 
   updateNextDisplay();
 
-  // 연속 생성 방지
   setTimeout(function () {
     canDrop = true;
   }, 450);
@@ -336,7 +351,7 @@ Events.on(
       ) {
         const level = a.fruitLevel;
 
-        // 마지막 단계는 합체 안 함
+        // 마지막 단계는 더 이상 합체하지 않음
         if (level >= fruitLevels.length - 1) {
           return;
         }
@@ -384,7 +399,7 @@ Events.on(
 );
 
 // =========================
-// 점수 표시
+// 점수
 // =========================
 
 function updateScore() {
@@ -397,13 +412,19 @@ function updateScore() {
 }
 
 // =========================
-// NEXT 표시
+// NEXT
 // =========================
 
 function updateNextDisplay() {
-  const nextElement = document.getElementById("nextFruit");
+  const nextElement =
+    document.getElementById("nextFruit");
 
   if (!nextElement) return;
 
-  nextElement.src = fruitLevels[nextLevel].image;
+  nextElement.src =
+    fruitLevels[nextLevel].image;
 }
+
+updateScore();
+updateNextDisplay();
+
