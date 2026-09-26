@@ -140,8 +140,8 @@ function createFruit(x, y, level) {
           texture: fruit.image,
 
           // 떨어지는 사진 크기
-          xScale: (fruit.radius * 1.0) / 256,
-          yScale: (fruit.radius * 1.0) / 256
+          xScale: (fruit.radius * 2) / 1024,
+yScale: (fruit.radius * 2) / 1024
         }
       }
     }
