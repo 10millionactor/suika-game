@@ -9,9 +9,9 @@ const {
 } = Matter;
 
 
-// =====================================
+// ======================================
 // 기본 설정
-// =====================================
+// ======================================
 
 const GAME_WIDTH = 360;
 const GAME_HEIGHT = 600;
@@ -20,23 +20,26 @@ const GAME_OVER_LINE_Y = 110;
 
 const FLOOR_TOP = 590;
 
-const WALL_THICKNESS = 80;
 
-
-// =====================================
-// 엔진
-// =====================================
+// ======================================
+// Matter.js 엔진
+// ======================================
 
 const engine = Engine.create();
+
+engine.enableSleeping = true;
 
 engine.gravity.x = 0;
 engine.gravity.y = 1;
 
-engine.positionIterations = 10;
-engine.velocityIterations = 8;
+engine.positionIterations = 12;
+engine.velocityIterations = 10;
+engine.constraintIterations = 4;
+
 
 const gameElement =
   document.getElementById("game");
+
 
 const render = Render.create({
   element: gameElement,
@@ -52,7 +55,9 @@ const render = Render.create({
   }
 });
 
+
 Render.run(render);
+
 
 const runner = Runner.create();
 
@@ -62,9 +67,9 @@ Runner.run(
 );
 
 
-// =====================================
+// ======================================
 // 형태소 9단계
-// =====================================
+// ======================================
 
 const fruitLevels = [
   {
@@ -123,43 +128,39 @@ const fruitLevels = [
 ];
 
 
-// =====================================
-// 이미지 로딩
-// =====================================
+// ======================================
+// 이미지 미리 로딩
+// ======================================
 
 const fruitImages =
-  fruitLevels.map((fruit) => {
+  fruitLevels.map(function (fruit) {
 
-    const image =
-      new Image();
+    const img = new Image();
 
-    image.src =
-      fruit.image;
+    img.src = fruit.image;
 
-    return image;
+    return img;
   });
 
 
-// =====================================
+// ======================================
 // 게임 상태
-// =====================================
+// ======================================
 
 let score = 0;
 
-let gameOver = false;
-
-let scoreRegistered = false;
+let previewX =
+  GAME_WIDTH / 2;
 
 let canDrop = true;
 
 let pointerDown = false;
 
-let previewX =
-  GAME_WIDTH / 2;
+let gameOver = false;
+
+let scoreRegistered = false;
 
 let dangerStartedAt = null;
-
-let mergeLock = false;
 
 
 function randomStartLevel() {
@@ -177,21 +178,18 @@ let nextLevel =
   randomStartLevel();
 
 
-// =====================================
-// 두꺼운 바닥 / 벽
-// =====================================
+// ======================================
+// 바닥 / 벽
+// ======================================
 
-// 화면 아래쪽에 매우 두꺼운 바닥 배치
 const floor = Bodies.rectangle(
   GAME_WIDTH / 2,
 
-  FLOOR_TOP +
-    WALL_THICKNESS / 2,
+  FLOOR_TOP + 40,
 
-  GAME_WIDTH +
-    WALL_THICKNESS * 2,
+  GAME_WIDTH + 160,
 
-  WALL_THICKNESS,
+  80,
 
   {
     isStatic: true,
@@ -200,7 +198,9 @@ const floor = Bodies.rectangle(
 
     restitution: 0,
 
-    friction: 0.4,
+    friction: 0.6,
+
+    frictionStatic: 1,
 
     render: {
       fillStyle: "#222"
@@ -209,16 +209,14 @@ const floor = Bodies.rectangle(
 );
 
 
-// 왼쪽 벽
 const leftWall = Bodies.rectangle(
-  -WALL_THICKNESS / 2,
+  -40,
 
   GAME_HEIGHT / 2,
 
-  WALL_THICKNESS,
+  80,
 
-  GAME_HEIGHT +
-    WALL_THICKNESS * 2,
+  GAME_HEIGHT + 200,
 
   {
     isStatic: true,
@@ -227,7 +225,9 @@ const leftWall = Bodies.rectangle(
 
     restitution: 0,
 
-    friction: 0.4,
+    friction: 0.6,
+
+    frictionStatic: 1,
 
     render: {
       fillStyle: "#222"
@@ -236,17 +236,14 @@ const leftWall = Bodies.rectangle(
 );
 
 
-// 오른쪽 벽
 const rightWall = Bodies.rectangle(
-  GAME_WIDTH +
-    WALL_THICKNESS / 2,
+  GAME_WIDTH + 40,
 
   GAME_HEIGHT / 2,
 
-  WALL_THICKNESS,
+  80,
 
-  GAME_HEIGHT +
-    WALL_THICKNESS * 2,
+  GAME_HEIGHT + 200,
 
   {
     isStatic: true,
@@ -255,7 +252,9 @@ const rightWall = Bodies.rectangle(
 
     restitution: 0,
 
-    friction: 0.4,
+    friction: 0.6,
+
+    frictionStatic: 1,
 
     render: {
       fillStyle: "#222"
@@ -274,9 +273,9 @@ Composite.add(
 );
 
 
-// =====================================
-// 위치 안전 보정
-// =====================================
+// ======================================
+// 위치 제한
+// ======================================
 
 function clampX(
   x,
@@ -290,6 +289,7 @@ function clampX(
     GAME_WIDTH -
     radius -
     2;
+
 
   return Math.max(
     min,
@@ -306,32 +306,32 @@ function clampY(
   radius
 ) {
 
-  // 형태소의 아래가 FLOOR_TOP 밑으로 가지 않게
-  const max =
+  const maxY =
     FLOOR_TOP -
     radius -
     2;
 
+
   return Math.min(
     y,
-    max
+    maxY
   );
 }
 
 
-// =====================================
+// ======================================
 // 형태소 생성
-// =====================================
+// ======================================
 
 function createFruit(
   x,
   y,
-  level,
-  options = {}
+  level
 ) {
 
   const fruit =
     fruitLevels[level];
+
 
   const safeX =
     clampX(
@@ -339,11 +339,13 @@ function createFruit(
       fruit.radius
     );
 
+
   const safeY =
     clampY(
       y,
       fruit.radius
     );
+
 
   const body =
     Bodies.circle(
@@ -354,19 +356,21 @@ function createFruit(
       {
         label: "fruit",
 
-        restitution: 0.02,
+        restitution: 0,
 
-        friction: 0.15,
+        friction: 0.25,
 
-        frictionStatic: 0.3,
+        frictionStatic: 0.5,
 
-        frictionAir: 0.008,
+        frictionAir: 0.02,
 
         density:
-          0.0015 +
+          0.0018 +
           level * 0.00015,
 
-        slop: 0.02,
+        slop: 0.05,
+
+        sleepThreshold: 30,
 
         render: {
           visible: false
@@ -384,18 +388,17 @@ function createFruit(
   body.spawnTime =
     Date.now();
 
-  body.safeCreated =
-    options.safeCreated === true;
 
-
-  Body.setVelocity(
+  // 회전 완전 금지
+  Body.setInertia(
     body,
-    {
-      x: 0,
-      y: 0
-    }
+    Infinity
   );
 
+  Body.setAngle(
+    body,
+    0
+  );
 
   Body.setAngularVelocity(
     body,
@@ -413,17 +416,19 @@ function createFruit(
 }
 
 
-// =====================================
-// 직접 이미지 렌더링
-// =====================================
+// ======================================
+// 렌더링
+// ======================================
 
 Events.on(
   render,
   "afterRender",
-  () => {
+
+  function () {
 
     const ctx =
       render.context;
+
 
     const bodies =
       Composite.allBodies(
@@ -431,94 +436,86 @@ Events.on(
       );
 
 
-    // -----------------------------
-    // 실제 형태소
-    // -----------------------------
+    // 실제 형태소 이미지
+    bodies.forEach(
+      function (body) {
 
-    for (
-      const body
-      of bodies
-    ) {
+        if (
+          body.label !==
+          "fruit"
+        ) {
+          return;
+        }
 
-      if (
-        body.label !==
-        "fruit"
-      ) {
-        continue;
+
+        const level =
+          body.fruitLevel;
+
+
+        const fruit =
+          fruitLevels[level];
+
+
+        const img =
+          fruitImages[level];
+
+
+        if (
+          !fruit ||
+          !img ||
+          !img.complete
+        ) {
+          return;
+        }
+
+
+        const diameter =
+          fruit.radius * 2;
+
+
+        ctx.save();
+
+
+        ctx.translate(
+          body.position.x,
+          body.position.y
+        );
+
+
+        ctx.beginPath();
+
+
+        ctx.arc(
+          0,
+          0,
+          fruit.radius,
+          0,
+          Math.PI * 2
+        );
+
+
+        ctx.clip();
+
+
+        ctx.drawImage(
+          img,
+
+          -diameter / 2,
+
+          -diameter / 2,
+
+          diameter,
+
+          diameter
+        );
+
+
+        ctx.restore();
       }
+    );
 
 
-      const level =
-        body.fruitLevel;
-
-      const fruit =
-        fruitLevels[level];
-
-      const image =
-        fruitImages[level];
-
-
-      if (
-        !fruit ||
-        !image ||
-        !image.complete
-      ) {
-        continue;
-      }
-
-
-      const diameter =
-        fruit.radius * 2;
-
-
-      ctx.save();
-
-
-      ctx.translate(
-        body.position.x,
-        body.position.y
-      );
-
-
-      ctx.rotate(
-        body.angle
-      );
-
-
-      ctx.beginPath();
-
-
-      ctx.arc(
-        0,
-        0,
-        fruit.radius,
-        0,
-        Math.PI * 2
-      );
-
-
-      ctx.clip();
-
-
-      ctx.drawImage(
-        image,
-
-        -diameter / 2,
-        -diameter / 2,
-
-        diameter,
-        diameter
-      );
-
-
-      ctx.restore();
-    }
-
-
-    // -----------------------------
-    // 게임오버 선
-    // -----------------------------
-
+    // 게임오버 경계선
     ctx.save();
 
     ctx.beginPath();
@@ -536,7 +533,8 @@ Events.on(
     ctx.strokeStyle =
       "#ff3b30";
 
-    ctx.lineWidth = 3;
+    ctx.lineWidth =
+      3;
 
     ctx.setLineDash(
       [8, 6]
@@ -547,15 +545,12 @@ Events.on(
     ctx.restore();
 
 
-    // -----------------------------
-    // 미리보기
-    // -----------------------------
-
     if (gameOver) {
       return;
     }
 
 
+    // 세로 가이드라인
     ctx.save();
 
     ctx.beginPath();
@@ -571,36 +566,39 @@ Events.on(
     );
 
     ctx.strokeStyle =
-      "rgba(0, 0, 0, 0.1)";
+      "rgba(0,0,0,0.1)";
 
-    ctx.lineWidth = 1;
+    ctx.lineWidth =
+      1;
 
     ctx.stroke();
 
     ctx.restore();
 
 
-    const previewFruit =
+    // 미리보기
+    const fruit =
       fruitLevels[
         currentLevel
       ];
 
-    const previewImage =
+
+    const img =
       fruitImages[
         currentLevel
       ];
 
 
     if (
-      !previewImage ||
-      !previewImage.complete
+      !img ||
+      !img.complete
     ) {
       return;
     }
 
 
-    const previewSize =
-      previewFruit.radius * 2;
+    const diameter =
+      fruit.radius * 2;
 
 
     ctx.save();
@@ -612,7 +610,9 @@ Events.on(
     ctx.arc(
       previewX,
       45,
-      previewFruit.radius,
+
+      fruit.radius,
+
       0,
       Math.PI * 2
     );
@@ -622,16 +622,17 @@ Events.on(
 
 
     ctx.drawImage(
-      previewImage,
+      img,
 
       previewX -
-        previewSize / 2,
+        diameter / 2,
 
       45 -
-        previewSize / 2,
+        diameter / 2,
 
-      previewSize,
-      previewSize
+      diameter,
+
+      diameter
     );
 
 
@@ -640,9 +641,9 @@ Events.on(
 );
 
 
-// =====================================
+// ======================================
 // 미리보기 위치
-// =====================================
+// ======================================
 
 function updatePreviewPosition(
   clientX
@@ -675,95 +676,112 @@ function updatePreviewPosition(
     ].radius;
 
 
-  x =
+  previewX =
     clampX(
       x,
       radius
     );
-
-
-  previewX = x;
 }
 
 
-// =====================================
-// PC + 모바일 통합
-// =====================================
+// ======================================
+// 조작
+// ======================================
 
-render.canvas
-  .addEventListener(
-    "pointermove",
-    (event) => {
+render.canvas.addEventListener(
+  "pointermove",
 
-      updatePreviewPosition(
-        event.clientX
-      );
+  function (event) {
+
+    updatePreviewPosition(
+      event.clientX
+    );
+  }
+);
+
+
+render.canvas.addEventListener(
+  "pointerdown",
+
+  function (event) {
+
+    if (gameOver) {
+      return;
     }
-  );
 
 
-render.canvas
-  .addEventListener(
-    "pointerdown",
-    (event) => {
-
-      if (gameOver) {
-        return;
-      }
+    pointerDown =
+      true;
 
 
-      pointerDown =
-        true;
+    try {
+
+      render.canvas
+        .setPointerCapture(
+          event.pointerId
+        );
+
+    } catch (error) {}
 
 
-      updatePreviewPosition(
-        event.clientX
-      );
+    updatePreviewPosition(
+      event.clientX
+    );
+  }
+);
+
+
+render.canvas.addEventListener(
+  "pointerup",
+
+  function (event) {
+
+    if (
+      !pointerDown ||
+      gameOver
+    ) {
+      return;
     }
-  );
 
 
-render.canvas
-  .addEventListener(
-    "pointerup",
-    (event) => {
-
-      if (
-        !pointerDown ||
-        gameOver
-      ) {
-        return;
-      }
+    pointerDown =
+      false;
 
 
-      pointerDown =
-        false;
+    updatePreviewPosition(
+      event.clientX
+    );
 
 
-      updatePreviewPosition(
-        event.clientX
-      );
+    try {
+
+      render.canvas
+        .releasePointerCapture(
+          event.pointerId
+        );
+
+    } catch (error) {}
 
 
-      dropFruit();
-    }
-  );
+    dropFruit();
+  }
+);
 
 
-render.canvas
-  .addEventListener(
-    "pointercancel",
-    () => {
+render.canvas.addEventListener(
+  "pointercancel",
 
-      pointerDown =
-        false;
-    }
-  );
+  function () {
+
+    pointerDown =
+      false;
+  }
+);
 
 
-// =====================================
+// ======================================
 // 떨어뜨리기
-// =====================================
+// ======================================
 
 function dropFruit() {
 
@@ -798,7 +816,7 @@ function dropFruit() {
 
 
   setTimeout(
-    () => {
+    function () {
 
       if (!gameOver) {
 
@@ -807,102 +825,109 @@ function dropFruit() {
       }
 
     },
+
     450
   );
 }
 
 
-// =====================================
+// ======================================
 // 합체
-// =====================================
+// ======================================
 
 Events.on(
   engine,
   "collisionStart",
-  (event) => {
 
-    if (
-      gameOver ||
-      mergeLock
-    ) {
+  function (event) {
+
+    if (gameOver) {
       return;
     }
 
 
-    for (
-      const pair
-      of event.pairs
-    ) {
+    event.pairs.forEach(
+      function (pair) {
 
-      const a =
-        pair.bodyA;
-
-      const b =
-        pair.bodyB;
+        const a =
+          pair.bodyA;
 
 
-      if (
-        a.label !== "fruit" ||
-        b.label !== "fruit"
-      ) {
-        continue;
+        const b =
+          pair.bodyB;
+
+
+        if (
+          a.label !==
+            "fruit" ||
+
+          b.label !==
+            "fruit"
+        ) {
+          return;
+        }
+
+
+        if (
+          a.fruitLevel !==
+          b.fruitLevel
+        ) {
+          return;
+        }
+
+
+        if (
+          a.isMerging ||
+          b.isMerging
+        ) {
+          return;
+        }
+
+
+        const level =
+          a.fruitLevel;
+
+
+        if (
+          level >=
+          fruitLevels.length -
+            1
+        ) {
+          return;
+        }
+
+
+        mergeFruits(
+          a,
+          b
+        );
       }
-
-
-      if (
-        a.fruitLevel !==
-        b.fruitLevel
-      ) {
-        continue;
-      }
-
-
-      if (
-        a.isMerging ||
-        b.isMerging
-      ) {
-        continue;
-      }
-
-
-      const level =
-        a.fruitLevel;
-
-
-      if (
-        level >=
-        fruitLevels.length - 1
-      ) {
-        continue;
-      }
-
-
-      mergeFruits(
-        a,
-        b
-      );
-
-
-      // 한 프레임에 같은 바디가 여러 번
-      // 합체되는 것을 막기 위해 1쌍만 처리
-      break;
-    }
+    );
   }
 );
 
+
+// ======================================
+// 합체 처리
+// ======================================
 
 function mergeFruits(
   a,
   b
 ) {
 
+  if (
+    a.isMerging ||
+    b.isMerging
+  ) {
+    return;
+  }
+
+
   a.isMerging =
     true;
 
   b.isMerging =
-    true;
-
-  mergeLock =
     true;
 
 
@@ -916,42 +941,39 @@ function mergeFruits(
     ].radius;
 
 
-  const midpointX =
+  const middleX =
     (
       a.position.x +
       b.position.x
     ) / 2;
 
 
-  const midpointY =
+  const middleY =
     (
       a.position.y +
       b.position.y
     ) / 2;
 
 
-  // 두 공의 속도를 거의 이어받지 않고
-  // 합체 위치만 참고
   const safeX =
     clampX(
-      midpointX,
+      middleX,
       nextRadius
     );
 
 
   const safeY =
     clampY(
-      midpointY -
-        2,
+      middleY - 4,
       nextRadius
     );
 
 
-  // 먼저 두 형태소 제거
   Composite.remove(
     engine.world,
     a
   );
+
 
   Composite.remove(
     engine.world,
@@ -959,19 +981,14 @@ function mergeFruits(
   );
 
 
-  // 바로 생성하지 않고
-  // 다음 물리 틱에 생성해서 관통 가능성 줄임
   setTimeout(
-    () => {
+    function () {
 
       const merged =
         createFruit(
           safeX,
           safeY,
-          nextLevel,
-          {
-            safeCreated: true
-          }
+          nextLevel
         );
 
 
@@ -981,6 +998,12 @@ function mergeFruits(
           x: 0,
           y: 0
         }
+      );
+
+
+      Body.setInertia(
+        merged,
+        Infinity
       );
 
 
@@ -998,21 +1021,18 @@ function mergeFruits(
 
       updateScore();
 
-
-      mergeLock =
-        false;
-
     },
+
     0
   );
 }
 
 
-// =====================================
-// 형태소 안전 검사
-// =====================================
+// ======================================
+// 형태소 안정화
+// ======================================
 
-function keepFruitInside(
+function stabilizeFruit(
   body
 ) {
 
@@ -1024,10 +1044,14 @@ function keepFruitInside(
   }
 
 
-  const radius =
+  const fruit =
     fruitLevels[
       body.fruitLevel
-    ].radius;
+    ];
+
+
+  const radius =
+    fruit.radius;
 
 
   let x =
@@ -1036,14 +1060,15 @@ function keepFruitInside(
   let y =
     body.position.y;
 
+
   let corrected =
     false;
 
 
-  // 왼쪽으로 빠짐
+  // 왼쪽 이탈
   if (
     x - radius <
-    0
+    -5
   ) {
 
     x =
@@ -1054,10 +1079,10 @@ function keepFruitInside(
   }
 
 
-  // 오른쪽으로 빠짐
+  // 오른쪽 이탈
   if (
     x + radius >
-    GAME_WIDTH
+    GAME_WIDTH + 5
   ) {
 
     x =
@@ -1070,10 +1095,10 @@ function keepFruitInside(
   }
 
 
-  // 아래로 빠짐
+  // 아래 이탈
   if (
     y + radius >
-    FLOOR_TOP + 5
+    FLOOR_TOP + 12
   ) {
 
     y =
@@ -1086,10 +1111,9 @@ function keepFruitInside(
   }
 
 
-  // 혹시 완전히 화면 밖까지 빠졌을 경우
   if (
     y >
-    GAME_HEIGHT + 100
+    GAME_HEIGHT + 50
   ) {
 
     y =
@@ -1102,9 +1126,7 @@ function keepFruitInside(
   }
 
 
-  if (
-    corrected
-  ) {
+  if (corrected) {
 
     Body.setPosition(
       body,
@@ -1122,85 +1144,80 @@ function keepFruitInside(
         y: 0
       }
     );
-
-
-    Body.setAngularVelocity(
-      body,
-      0
-    );
   }
 
 
-  // 지나치게 빠른 속도 제한
-  const maxSpeed = 12;
-
-
+  // 거의 멈췄으면 미세 속도 제거
   if (
-    Math.abs(
-      body.velocity.x
-    ) >
-    maxSpeed ||
-    Math.abs(
-      body.velocity.y
-    ) >
-    maxSpeed
+    body.speed < 0.08 &&
+    !body.isMerging
   ) {
 
     Body.setVelocity(
       body,
       {
-        x:
-          Math.max(
-            -maxSpeed,
-            Math.min(
-              maxSpeed,
-              body.velocity.x
-            )
-          ),
-
-        y:
-          Math.max(
-            -maxSpeed,
-            Math.min(
-              maxSpeed,
-              body.velocity.y
-            )
-          )
+        x: 0,
+        y: 0
       }
     );
   }
 
 
-  // 백스핀 과도한 것 제한
-  const maxAngularSpeed =
-    0.15;
+  // 너무 빠른 이동 방지
+  const MAX_SPEED =
+    10;
+
+
+  const vx =
+    Math.max(
+      -MAX_SPEED,
+
+      Math.min(
+        MAX_SPEED,
+        body.velocity.x
+      )
+    );
+
+
+  const vy =
+    Math.max(
+      -MAX_SPEED,
+
+      Math.min(
+        MAX_SPEED,
+        body.velocity.y
+      )
+    );
 
 
   if (
-    Math.abs(
-      body.angularVelocity
-    ) >
-    maxAngularSpeed
+    vx !==
+      body.velocity.x ||
+
+    vy !==
+      body.velocity.y
   ) {
 
-    Body.setAngularVelocity(
+    Body.setVelocity(
       body,
-
-      Math.sign(
-        body.angularVelocity
-      ) *
-        maxAngularSpeed
+      {
+        x: vx,
+        y: vy
+      }
     );
   }
 }
 
 
-// 매 물리 업데이트마다
-// 모든 형태소 안전 검사
+// ======================================
+// 매 프레임
+// ======================================
+
 Events.on(
   engine,
   "afterUpdate",
-  () => {
+
+  function () {
 
     const bodies =
       Composite.allBodies(
@@ -1209,7 +1226,7 @@ Events.on(
 
 
     bodies.forEach(
-      keepFruitInside
+      stabilizeFruit
     );
 
 
@@ -1218,9 +1235,9 @@ Events.on(
 );
 
 
-// =====================================
-// 게임오버 검사
-// =====================================
+// ======================================
+// 게임오버 판정
+// ======================================
 
 function checkGameOver() {
 
@@ -1237,9 +1254,13 @@ function checkGameOver() {
     Composite.allBodies(
       engine.world
     ).filter(
-      (body) =>
-        body.label ===
-        "fruit"
+      function (body) {
+
+        return (
+          body.label ===
+          "fruit"
+        );
+      }
     );
 
 
@@ -1252,7 +1273,6 @@ function checkGameOver() {
     of fruits
   ) {
 
-    // 새로 떨어뜨린 형태소는 잠시 제외
     if (
       now -
         body.spawnTime <
@@ -1262,7 +1282,6 @@ function checkGameOver() {
     }
 
 
-    // 합체 중 제외
     if (
       body.isMerging
     ) {
@@ -1281,11 +1300,10 @@ function checkGameOver() {
       radius;
 
 
-    // 빨간선 위에 있고
-    // 거의 안정된 상태일 때만 위험
     if (
       top <
         GAME_OVER_LINE_Y &&
+
       body.speed <
         1.2
     ) {
@@ -1298,9 +1316,7 @@ function checkGameOver() {
   }
 
 
-  if (
-    !danger
-  ) {
+  if (!danger) {
 
     dangerStartedAt =
       null;
@@ -1332,9 +1348,9 @@ function checkGameOver() {
 }
 
 
-// =====================================
+// ======================================
 // 게임오버
-// =====================================
+// ======================================
 
 function endGame() {
 
@@ -1345,6 +1361,7 @@ function endGame() {
 
   gameOver =
     true;
+
 
   canDrop =
     false;
@@ -1389,9 +1406,9 @@ function endGame() {
 }
 
 
-// =====================================
+// ======================================
 // 랭킹 등록
-// =====================================
+// ======================================
 
 const registerButton =
   document.getElementById(
@@ -1401,113 +1418,110 @@ const registerButton =
 
 if (registerButton) {
 
-  registerButton
-    .addEventListener(
-      "click",
+  registerButton.addEventListener(
+    "click",
 
-      async () => {
+    async function () {
+
+      if (
+        scoreRegistered
+      ) {
+        return;
+      }
+
+
+      const nicknameInput =
+        document.getElementById(
+          "nickname"
+        );
+
+
+      const message =
+        document.getElementById(
+          "registerMessage"
+        );
+
+
+      const nickname =
+        nicknameInput
+          ? nicknameInput
+              .value
+              .trim()
+          : "";
+
+
+      if (!nickname) {
+
+        if (message) {
+
+          message.textContent =
+            "닉네임을 입력해주세요.";
+        }
+
+        return;
+      }
+
+
+      try {
+
+        if (message) {
+
+          message.textContent =
+            "등록 중...";
+        }
+
+
+        await saveScore(
+          nickname,
+          score
+        );
+
+
+        scoreRegistered =
+          true;
+
+
+        registerButton.disabled =
+          true;
+
+
+        if (message) {
+
+          message.textContent =
+            "🏆 랭킹 등록 완료!";
+        }
+
 
         if (
-          scoreRegistered
-        ) {
-          return;
-        }
-
-
-        const nicknameInput =
-          document.getElementById(
-            "nickname"
-          );
-
-
-        const message =
-          document.getElementById(
-            "registerMessage"
-          );
-
-
-        const nickname =
-          nicknameInput
-            ?.value
-            .trim();
-
-
-        if (
-          !nickname
+          typeof loadRanking ===
+          "function"
         ) {
 
-          if (message) {
-
-            message.textContent =
-              "닉네임을 입력해주세요.";
-          }
-
-          return;
+          await loadRanking();
         }
 
+      } catch (error) {
 
-        try {
-
-          if (message) {
-
-            message.textContent =
-              "등록 중...";
-          }
+        console.error(
+          error
+        );
 
 
-          await saveScore(
-            nickname,
-            score
-          );
+        if (message) {
 
-
-          scoreRegistered =
-            true;
-
-
-          registerButton.disabled =
-            true;
-
-
-          if (message) {
-
-            message.textContent =
-              "🏆 랭킹 등록 완료!";
-          }
-
-
-          if (
-            typeof loadRanking ===
-            "function"
-          ) {
-
-            await loadRanking();
-          }
-
-        }
-
-        catch (error) {
-
-          console.error(
-            error
-          );
-
-
-          if (message) {
-
-            message.textContent =
-              error.message ||
-              "랭킹 등록에 실패했습니다.";
-          }
+          message.textContent =
+            error.message ||
+            "랭킹 등록에 실패했습니다.";
         }
       }
-    );
+    }
+  );
 }
 
 
-// =====================================
+// ======================================
 // 엔터로 등록
-// =====================================
+// ======================================
 
 const nicknameInput =
   document.getElementById(
@@ -1520,27 +1534,26 @@ if (
   registerButton
 ) {
 
-  nicknameInput
-    .addEventListener(
-      "keydown",
+  nicknameInput.addEventListener(
+    "keydown",
 
-      (event) => {
+    function (event) {
 
-        if (
-          event.key ===
-          "Enter"
-        ) {
+      if (
+        event.key ===
+        "Enter"
+      ) {
 
-          registerButton.click();
-        }
+        registerButton.click();
       }
-    );
+    }
+  );
 }
 
 
-// =====================================
+// ======================================
 // 다시하기
-// =====================================
+// ======================================
 
 const restartButton =
   document.getElementById(
@@ -1550,21 +1563,20 @@ const restartButton =
 
 if (restartButton) {
 
-  restartButton
-    .addEventListener(
-      "click",
+  restartButton.addEventListener(
+    "click",
 
-      () => {
+    function () {
 
-        location.reload();
-      }
-    );
+      location.reload();
+    }
+  );
 }
 
 
-// =====================================
+// ======================================
 // 점수 표시
-// =====================================
+// ======================================
 
 function updateScore() {
 
@@ -1582,9 +1594,9 @@ function updateScore() {
 }
 
 
-// =====================================
+// ======================================
 // NEXT 표시
-// =====================================
+// ======================================
 
 function updateNextDisplay() {
 
@@ -1606,9 +1618,9 @@ function updateNextDisplay() {
 }
 
 
-// =====================================
+// ======================================
 // 시작
-// =====================================
+// ======================================
 
 updateScore();
 
