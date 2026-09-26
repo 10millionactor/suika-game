@@ -61,7 +61,7 @@ const fruitLevels = [
   { radius: 108, image: "images/09.png", score: 50 }
 ];
 
-// 미리보기용 이미지 미리 로딩
+// 이미지 미리 로딩
 const fruitImages = fruitLevels.map(function (fruit) {
   const img = new Image();
   img.src = fruit.image;
@@ -136,13 +136,8 @@ function createFruit(x, y, level) {
       label: "fruit",
 
       render: {
-        sprite: {
-          texture: fruit.image,
-
-          // 떨어지는 사진 크기
-          xScale: (fruit.radius * 2) / 1024,
-yScale: (fruit.radius * 2) / 1024
-        }
+        fillStyle: "transparent",
+        strokeStyle: "transparent"
       }
     }
   );
@@ -156,16 +151,66 @@ yScale: (fruit.radius * 2) / 1024
 }
 
 // =========================
-// 미리보기 이미지
+// 실제 공 + 미리보기 그리기
 // =========================
 
 Events.on(render, "afterRender", function () {
   const ctx = render.context;
 
-  const fruit = fruitLevels[currentLevel];
-  const img = fruitImages[currentLevel];
+  // -------------------------
+  // 실제 떨어진 공 이미지
+  // -------------------------
 
+  const bodies = Composite.allBodies(engine.world);
+
+  bodies.forEach(function (body) {
+    if (body.label !== "fruit") return;
+
+    const level = body.fruitLevel;
+    const fruit = fruitLevels[level];
+    const img = fruitImages[level];
+
+    if (!img || !img.complete) return;
+
+    const size = fruit.radius * 2;
+
+    ctx.save();
+
+    ctx.translate(
+      body.position.x,
+      body.position.y
+    );
+
+    ctx.rotate(body.angle);
+
+    // 원형으로 자르기
+    ctx.beginPath();
+    ctx.arc(
+      0,
+      0,
+      fruit.radius,
+      0,
+      Math.PI * 2
+    );
+
+    ctx.clip();
+
+    // 이미지 그리기
+    ctx.drawImage(
+      img,
+      -size / 2,
+      -size / 2,
+      size,
+      size
+    );
+
+    ctx.restore();
+  });
+
+  // -------------------------
   // 가이드라인
+  // -------------------------
+
   ctx.beginPath();
   ctx.moveTo(previewX, 0);
   ctx.lineTo(previewX, GAME_HEIGHT);
@@ -174,15 +219,27 @@ Events.on(render, "afterRender", function () {
   ctx.lineWidth = 1;
   ctx.stroke();
 
+  // -------------------------
   // 미리보기 이미지
-  if (img.complete) {
+  // -------------------------
+
+  const previewFruit = fruitLevels[currentLevel];
+  const previewImg = fruitImages[currentLevel];
+
+  if (
+    previewImg &&
+    previewImg.complete
+  ) {
+    const size =
+      previewFruit.radius * 2;
+
     ctx.save();
 
     ctx.beginPath();
     ctx.arc(
       previewX,
       45,
-      fruit.radius,
+      previewFruit.radius,
       0,
       Math.PI * 2
     );
@@ -190,11 +247,11 @@ Events.on(render, "afterRender", function () {
     ctx.clip();
 
     ctx.drawImage(
-      img,
-      previewX - fruit.radius,
-      45 - fruit.radius,
-      fruit.radius * 2,
-      fruit.radius * 2
+      previewImg,
+      previewX - size / 2,
+      45 - size / 2,
+      size,
+      size
     );
 
     ctx.restore();
@@ -206,16 +263,19 @@ Events.on(render, "afterRender", function () {
 // =========================
 
 function updatePreviewPosition(clientX) {
-  const rect = render.canvas.getBoundingClientRect();
+  const rect =
+    render.canvas.getBoundingClientRect();
 
   let x =
     (clientX - rect.left) *
     (GAME_WIDTH / rect.width);
 
-  const radius = fruitLevels[currentLevel].radius;
+  const radius =
+    fruitLevels[currentLevel].radius;
 
   const minX = radius + 10;
-  const maxX = GAME_WIDTH - radius - 10;
+  const maxX =
+    GAME_WIDTH - radius - 10;
 
   if (x < minX) x = minX;
   if (x > maxX) x = maxX;
@@ -238,7 +298,10 @@ render.canvas.addEventListener(
   "mousedown",
   function (event) {
     isPointerDown = true;
-    updatePreviewPosition(event.clientX);
+
+    updatePreviewPosition(
+      event.clientX
+    );
   }
 );
 
@@ -249,7 +312,9 @@ render.canvas.addEventListener(
 
     isPointerDown = false;
 
-    updatePreviewPosition(event.clientX);
+    updatePreviewPosition(
+      event.clientX
+    );
 
     dropFruit();
   }
@@ -266,10 +331,13 @@ render.canvas.addEventListener(
 
     isPointerDown = true;
 
-    const touch = event.touches[0];
+    const touch =
+      event.touches[0];
 
     if (touch) {
-      updatePreviewPosition(touch.clientX);
+      updatePreviewPosition(
+        touch.clientX
+      );
     }
   },
   { passive: false }
@@ -280,10 +348,13 @@ render.canvas.addEventListener(
   function (event) {
     event.preventDefault();
 
-    const touch = event.touches[0];
+    const touch =
+      event.touches[0];
 
     if (touch) {
-      updatePreviewPosition(touch.clientX);
+      updatePreviewPosition(
+        touch.clientX
+      );
     }
   },
   { passive: false }
@@ -312,7 +383,8 @@ function dropFruit() {
 
   canDrop = false;
 
-  const levelToDrop = currentLevel;
+  const levelToDrop =
+    currentLevel;
 
   createFruit(
     previewX,
@@ -320,8 +392,11 @@ function dropFruit() {
     levelToDrop
   );
 
-  currentLevel = nextLevel;
-  nextLevel = randomStartLevel();
+  currentLevel =
+    nextLevel;
+
+  nextLevel =
+    randomStartLevel();
 
   updateNextDisplay();
 
@@ -338,63 +413,95 @@ Events.on(
   engine,
   "collisionStart",
   function (event) {
-    event.pairs.forEach(function (pair) {
-      const a = pair.bodyA;
-      const b = pair.bodyB;
+    event.pairs.forEach(
+      function (pair) {
+        const a =
+          pair.bodyA;
 
-      if (
-        a.label === "fruit" &&
-        b.label === "fruit" &&
-        a.fruitLevel === b.fruitLevel &&
-        !a.isMerging &&
-        !b.isMerging
-      ) {
-        const level = a.fruitLevel;
+        const b =
+          pair.bodyB;
 
-        // 마지막 단계는 더 이상 합체하지 않음
-        if (level >= fruitLevels.length - 1) {
-          return;
+        if (
+          a.label === "fruit" &&
+          b.label === "fruit" &&
+          a.fruitLevel ===
+            b.fruitLevel &&
+          !a.isMerging &&
+          !b.isMerging
+        ) {
+          const level =
+            a.fruitLevel;
+
+          // 마지막 단계는 합체 X
+          if (
+            level >=
+            fruitLevels.length - 1
+          ) {
+            return;
+          }
+
+          a.isMerging = true;
+          b.isMerging = true;
+
+          const newX =
+            (a.position.x +
+              b.position.x) /
+            2;
+
+          const newY =
+            (a.position.y +
+              b.position.y) /
+            2;
+
+          const velocityX =
+            (a.velocity.x +
+              b.velocity.x) /
+            2;
+
+          const velocityY =
+            (a.velocity.y +
+              b.velocity.y) /
+            2;
+
+          setTimeout(
+            function () {
+              Composite.remove(
+                engine.world,
+                a
+              );
+
+              Composite.remove(
+                engine.world,
+                b
+              );
+
+              const newFruit =
+                createFruit(
+                  newX,
+                  newY,
+                  level + 1
+                );
+
+              Body.setVelocity(
+                newFruit,
+                {
+                  x: velocityX,
+                  y: velocityY
+                }
+              );
+
+              score +=
+                fruitLevels[
+                  level + 1
+                ].score;
+
+              updateScore();
+            },
+            0
+          );
         }
-
-        a.isMerging = true;
-        b.isMerging = true;
-
-        const newX =
-          (a.position.x + b.position.x) / 2;
-
-        const newY =
-          (a.position.y + b.position.y) / 2;
-
-        const velocityX =
-          (a.velocity.x + b.velocity.x) / 2;
-
-        const velocityY =
-          (a.velocity.y + b.velocity.y) / 2;
-
-        setTimeout(function () {
-          Composite.remove(engine.world, a);
-          Composite.remove(engine.world, b);
-
-          const newFruit = createFruit(
-            newX,
-            newY,
-            level + 1
-          );
-
-          Body.setVelocity(
-            newFruit,
-            {
-              x: velocityX,
-              y: velocityY
-            }
-          );
-
-          score += fruitLevels[level + 1].score;
-
-          updateScore();
-        }, 0);
       }
-    });
+    );
   }
 );
 
@@ -404,10 +511,13 @@ Events.on(
 
 function updateScore() {
   const scoreElement =
-    document.getElementById("score");
+    document.getElementById(
+      "score"
+    );
 
   if (scoreElement) {
-    scoreElement.textContent = score;
+    scoreElement.textContent =
+      score;
   }
 }
 
@@ -417,7 +527,9 @@ function updateScore() {
 
 function updateNextDisplay() {
   const nextElement =
-    document.getElementById("nextFruit");
+    document.getElementById(
+      "nextFruit"
+    );
 
   if (!nextElement) return;
 
@@ -427,4 +539,5 @@ function updateNextDisplay() {
 
 updateScore();
 updateNextDisplay();
+
 
