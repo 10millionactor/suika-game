@@ -3,10 +3,10 @@
 // ==============================
 
 
-const SUPABASE_URL = https://webigdugwinewuyhybnx.supabase.co
+const SUPABASE_URL = "https://webigdugwinewuyhybnx.supabase.co"
   
 
-const SUPABASE_KEY = sb_publishable_45Z1QOfL9KydKB60_wHMJA_Ztr1a1e9
+const SUPABASE_KEY = "sb_publishable_45Z1QOfL9KydKB60_wHMJA_Ztr1a1e9"
   
 
 // 클라이언트 생성
