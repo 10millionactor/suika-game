@@ -59,7 +59,6 @@ const fruitLevels = [
   { radius: 92, image: "images/08.png", score: 36 },
   { radius: 108, image: "images/09.png", score: 50 }
 ];
-
 // =========================
 // 벽 / 바닥
 // =========================
@@ -125,11 +124,14 @@ function createFruit(x, y, level) {
       friction: 0.08,
       frictionAir: 0.002,
       density: 0.001 + level * 0.0001,
-
       label: "fruit",
 
       render: {
-        fillStyle: fruit.color
+        sprite: {
+          texture: fruit.image,
+          xScale: (fruit.radius * 2) / 256,
+          yScale: (fruit.radius * 2) / 256
+        }
       }
     }
   );
@@ -139,6 +141,8 @@ function createFruit(x, y, level) {
 
   Composite.add(engine.world, body);
 
+  return body;
+}
   return body;
 }
 
