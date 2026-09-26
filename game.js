@@ -18,7 +18,6 @@ const GAME_HEIGHT = 600;
 
 const GAME_OVER_LINE_Y = 110;
 
-// 바닥 윗면
 const FLOOR_TOP = 596;
 
 
@@ -29,7 +28,10 @@ const FLOOR_TOP = 596;
 const engine = Engine.create();
 
 engine.gravity.x = 0;
-engine.gravity.y = 1;
+
+// 기존보다 살짝 약한 중력
+// → 떨어질 때 덜 딱딱함
+engine.gravity.y = 0.82;
 
 engine.enableSleeping = true;
 
@@ -76,49 +78,41 @@ const fruitLevels = [
     image: "images/01.png",
     score: 1
   },
-
   {
     radius: 27,
     image: "images/02.png",
     score: 3
   },
-
   {
     radius: 35,
     image: "images/03.png",
     score: 6
   },
-
   {
     radius: 44,
     image: "images/04.png",
     score: 10
   },
-
   {
     radius: 54,
     image: "images/05.png",
     score: 15
   },
-
   {
     radius: 65,
     image: "images/06.png",
     score: 21
   },
-
   {
     radius: 78,
     image: "images/07.png",
     score: 28
   },
-
   {
     radius: 92,
     image: "images/08.png",
     score: 36
   },
-
   {
     radius: 108,
     image: "images/09.png",
@@ -189,9 +183,6 @@ let nextLevel =
 // 바닥 / 벽
 // ========================================
 
-// 충돌 바닥은 두껍지만
-// 화면에는 얇게 보이도록 대부분 아래에 배치
-
 const floor = Bodies.rectangle(
   GAME_WIDTH / 2,
 
@@ -208,10 +199,10 @@ const floor = Bodies.rectangle(
 
     restitution: 0,
 
-    // 이전보다 살짝 부드럽게 굴러가게
-    friction: 0.22,
+    // 기존보다 덜 뻑뻑하게
+    friction: 0.13,
 
-    frictionStatic: 0.3,
+    frictionStatic: 0.18,
 
     render: {
       fillStyle: "#222"
@@ -236,7 +227,7 @@ const leftWall = Bodies.rectangle(
 
     restitution: 0,
 
-    friction: 0.12,
+    friction: 0.06,
 
     render: {
       fillStyle: "#222"
@@ -261,7 +252,7 @@ const rightWall = Bodies.rectangle(
 
     restitution: 0,
 
-    friction: 0.12,
+    friction: 0.06,
 
     render: {
       fillStyle: "#222"
@@ -363,16 +354,16 @@ function createFruit(
       {
         label: "fruit",
 
-        // 살짝 통통
-        restitution: 0.06,
+        // 살짝 말랑하게
+        restitution: 0.08,
 
-        // 부드럽게 굴러감
-        friction: 0.08,
+        // 둥글둥글 굴러가게
+        friction: 0.055,
 
-        frictionStatic: 0.16,
+        frictionStatic: 0.10,
 
-        // 감속을 너무 세게 하지 않음
-        frictionAir: 0.0025,
+        // 감속을 너무 세게 하지 않게
+        frictionAir: 0.0015,
 
         density:
           0.0018 +
@@ -380,8 +371,8 @@ function createFruit(
 
         slop: 0.04,
 
-        // 너무 빨리 sleep 되지 않게
-        sleepThreshold: 100,
+        // 너무 빨리 잠들지 않게
+        sleepThreshold: 120,
 
         render: {
           visible: false
@@ -400,7 +391,7 @@ function createFruit(
     Date.now();
 
 
-  // 처음 생성될 때는 스핀 없음
+  // 생성 직후엔 스핀 없음
   Body.setAngularVelocity(
     body,
     0
@@ -491,7 +482,7 @@ Events.on(
         );
 
 
-        // 자연스럽게 구르는 느낌
+        // 자연스럽게 구르는 회전 표현
         ctx.rotate(
           body.angle
         );
@@ -579,7 +570,7 @@ Events.on(
     );
 
     ctx.strokeStyle =
-      "rgba(0, 0, 0, 0.10)";
+      "rgba(0,0,0,0.10)";
 
     ctx.lineWidth =
       1;
@@ -697,7 +688,7 @@ function updatePreviewPosition(
 
 
 // ========================================
-// PC / 모바일 조작
+// 조작
 // ========================================
 
 render.canvas.addEventListener(
@@ -980,7 +971,6 @@ function processMergeQueue() {
       );
 
 
-    // 큰 형태소가 바닥에 박히지 않게
     newY =
       Math.min(
         newY - 2,
@@ -989,6 +979,32 @@ function processMergeQueue() {
         nextRadius -
         3
       );
+
+
+    // ==================================
+    // 합체 전 두 형태소의 속도를 기억
+    // ==================================
+
+    const mergedVelocity = {
+      x:
+        (
+          a.velocity.x +
+          b.velocity.x
+        ) / 2,
+
+      y:
+        (
+          a.velocity.y +
+          b.velocity.y
+        ) / 2
+    };
+
+
+    const mergedAngularVelocity =
+      (
+        a.angularVelocity +
+        b.angularVelocity
+      ) / 2;
 
 
     Composite.remove(
@@ -1011,19 +1027,30 @@ function processMergeQueue() {
       );
 
 
-    // 합체 직후에는 갑자기 튀지 않게
+    // ==================================
+    // 움직임을 완전히 끊지 않고
+    // 일부 이어받음
+    // ==================================
+
     Body.setVelocity(
       merged,
       {
-        x: 0,
-        y: 0
+        x:
+          mergedVelocity.x *
+          0.45,
+
+        y:
+          mergedVelocity.y *
+          0.25
       }
     );
 
 
     Body.setAngularVelocity(
       merged,
-      0
+
+      mergedAngularVelocity *
+      0.35
     );
 
 
@@ -1096,9 +1123,13 @@ function physicsSafety() {
       }
 
 
-      // 너무 미친 스핀만 제한
+      // =================================
+      // 자연스러운 회전은 허용하되
+      // 미친 스핀만 제한
+      // =================================
+
       const MAX_ANGULAR_SPEED =
-        0.12;
+        0.16;
 
 
       if (
@@ -1119,7 +1150,10 @@ function physicsSafety() {
       }
 
 
-      // 정말 바닥 밑으로 이탈했을 때만 복구
+      // =================================
+      // 완전히 아래로 빠진 경우만 구조
+      // =================================
+
       if (
         body.position.y >
         GAME_HEIGHT + 70
@@ -1186,7 +1220,8 @@ function physicsSafety() {
           body,
           {
             x: 0,
-            y: body.velocity.y
+            y:
+              body.velocity.y
           }
         );
       }
@@ -1499,9 +1534,7 @@ if (registerButton) {
 
       } catch (error) {
 
-        console.error(
-          error
-        );
+        console.error(error);
 
 
         if (message) {
@@ -1517,7 +1550,7 @@ if (registerButton) {
 
 
 // ========================================
-// Enter → 등록
+// Enter 등록
 // ========================================
 
 const nicknameInput =
