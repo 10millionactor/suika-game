@@ -74,8 +74,6 @@
       max-width: 100%;
     }
 
-    /* 랭킹 */
-
     .ranking-box {
       width: 360px;
       max-width: calc(100vw - 20px);
@@ -87,7 +85,7 @@
       border-radius: 16px;
 
       box-shadow:
-        0 4px 16px rgba(0,0,0,0.08);
+        0 4px 16px rgba(0, 0, 0, 0.08);
     }
 
     .ranking-box h2 {
@@ -111,6 +109,10 @@
       border-bottom: 1px solid #eee;
     }
 
+    .ranking-item:last-child {
+      border-bottom: none;
+    }
+
     .ranking-rank {
       font-weight: bold;
     }
@@ -128,8 +130,6 @@
       font-weight: bold;
     }
 
-    /* 게임오버 창 */
-
     #gameOverModal {
       position: fixed;
 
@@ -141,7 +141,7 @@
 
       padding: 20px;
 
-      background: rgba(0,0,0,0.65);
+      background: rgba(0, 0, 0, 0.65);
 
       z-index: 9999;
     }
@@ -157,12 +157,11 @@
       border-radius: 20px;
 
       box-shadow:
-        0 12px 40px rgba(0,0,0,0.3);
+        0 12px 40px rgba(0, 0, 0, 0.3);
     }
 
     .modal-box h2 {
       margin: 0 0 12px;
-
       font-size: 30px;
     }
 
@@ -173,7 +172,6 @@
 
     #finalScore {
       margin: 6px 0 20px;
-
       font-size: 32px;
       font-weight: bold;
     }
@@ -218,14 +216,23 @@
 
     #restartButton {
       background: #eee;
+      color: #222;
     }
 
     #registerMessage {
       min-height: 22px;
-
       margin-top: 10px;
-
       font-size: 14px;
+    }
+
+    @media (max-width: 400px) {
+      h1 {
+        font-size: 26px;
+      }
+
+      .info {
+        font-size: 16px;
+      }
     }
   </style>
 </head>
@@ -264,7 +271,6 @@
 
   </div>
 
-  <!-- 게임 오버 -->
   <div id="gameOverModal">
 
     <div class="modal-box">
@@ -281,8 +287,9 @@
 
       <input
         id="nickname"
+        type="text"
         maxlength="10"
-        placeholder="닉네임 입력"
+        placeholder="닉네임을 입력하세요"
         autocomplete="off"
       >
 
@@ -306,19 +313,17 @@
 
   </div>
 
-  <!-- 물리 엔진 -->
   <script
     src="https://cdn.jsdelivr.net/npm/matter-js@0.20.0/build/matter.min.js"
   ></script>
 
-  <!-- Supabase -->
   <script
     src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
   ></script>
 
-  <!-- 캐시 방지 버전 -->
-  <script src="./supabase.js?v=20260926-2"></script>
-  <script src="./game.js?v=20260926-2"></script>
+  <script src="./supabase.js?v=20260927-1"></script>
+
+  <script src="./game.js?v=20260927-1"></script>
 
 </body>
 </html>
