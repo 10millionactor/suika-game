@@ -140,8 +140,8 @@ function createFruit(x, y, level) {
           texture: fruit.image,
 
           // 이미지가 256 x 256 기준
-          xScale: (fruit.radius * 1.2) / 256,
-          yScale: (fruit.radius * 1.2) / 256
+          xScale: (fruit.radius * 1.0) / 256,
+yScale: (fruit.radius * 1.0) / 256
         }
       }
     }
