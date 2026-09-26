@@ -9,29 +9,34 @@ const {
 } = Matter;
 
 
-// ======================================
+// ========================================
 // 기본 설정
-// ======================================
+// ========================================
 
 const GAME_WIDTH = 360;
 const GAME_HEIGHT = 600;
 
 const GAME_OVER_LINE_Y = 110;
 
-const FLOOR_TOP = 590;
+// 실제 바닥의 윗면
+// 화면에서는 약 4px 정도만 보임
+const FLOOR_Y = 596;
 
 
-// ======================================
+// ========================================
 // Matter.js 엔진
-// ======================================
+// ========================================
 
 const engine = Engine.create();
 
+// 멈춘 형태소는 자동으로 sleep
+// → 바들거림 감소
 engine.enableSleeping = true;
 
 engine.gravity.x = 0;
 engine.gravity.y = 1;
 
+// 충돌 안정성
 engine.positionIterations = 12;
 engine.velocityIterations = 10;
 engine.constraintIterations = 4;
@@ -48,9 +53,7 @@ const render = Render.create({
   options: {
     width: GAME_WIDTH,
     height: GAME_HEIGHT,
-
     wireframes: false,
-
     background: "#ffffff"
   }
 });
@@ -67,9 +70,9 @@ Runner.run(
 );
 
 
-// ======================================
+// ========================================
 // 형태소 9단계
-// ======================================
+// ========================================
 
 const fruitLevels = [
   {
@@ -77,49 +80,41 @@ const fruitLevels = [
     image: "images/01.png",
     score: 1
   },
-
   {
     radius: 27,
     image: "images/02.png",
     score: 3
   },
-
   {
     radius: 35,
     image: "images/03.png",
     score: 6
   },
-
   {
     radius: 44,
     image: "images/04.png",
     score: 10
   },
-
   {
     radius: 54,
     image: "images/05.png",
     score: 15
   },
-
   {
     radius: 65,
     image: "images/06.png",
     score: 21
   },
-
   {
     radius: 78,
     image: "images/07.png",
     score: 28
   },
-
   {
     radius: 92,
     image: "images/08.png",
     score: 36
   },
-
   {
     radius: 108,
     image: "images/09.png",
@@ -128,9 +123,9 @@ const fruitLevels = [
 ];
 
 
-// ======================================
-// 이미지 미리 로딩
-// ======================================
+// ========================================
+// 이미지 로딩
+// ========================================
 
 const fruitImages =
   fruitLevels.map(function (fruit) {
@@ -143,14 +138,20 @@ const fruitImages =
   });
 
 
-// ======================================
+// ========================================
 // 게임 상태
-// ======================================
+// ========================================
 
 let score = 0;
 
 let previewX =
   GAME_WIDTH / 2;
+
+let currentLevel =
+  randomStartLevel();
+
+let nextLevel =
+  randomStartLevel();
 
 let canDrop = true;
 
@@ -160,8 +161,17 @@ let gameOver = false;
 
 let scoreRegistered = false;
 
-let dangerStartedAt = null;
+let dangerStartTime = null;
 
+
+// 합체 예약 목록
+// 충돌 이벤트 도중 바로 body를 삭제/생성하지 않음
+const mergeQueue = [];
+
+
+// ========================================
+// 시작 형태소 랜덤
+// ========================================
 
 function randomStartLevel() {
 
@@ -171,25 +181,27 @@ function randomStartLevel() {
 }
 
 
-let currentLevel =
-  randomStartLevel();
-
-let nextLevel =
-  randomStartLevel();
+// ========================================
+// 벽 / 바닥
+// ========================================
 
 
-// ======================================
-// 바닥 / 벽
-// ======================================
+// ------------------------------
+// 바닥
+//
+// 윗면: y = 596
+// 실제 몸체 대부분은 화면 아래에 있음
+// 그래서 화면상 두껍게 보이지 않음
+// ------------------------------
 
 const floor = Bodies.rectangle(
   GAME_WIDTH / 2,
 
-  FLOOR_TOP + 40,
+  FLOOR_Y + 20,
 
-  GAME_WIDTH + 160,
+  GAME_WIDTH + 80,
 
-  80,
+  40,
 
   {
     isStatic: true,
@@ -198,9 +210,7 @@ const floor = Bodies.rectangle(
 
     restitution: 0,
 
-    friction: 0.6,
-
-    frictionStatic: 1,
+    friction: 0.8,
 
     render: {
       fillStyle: "#222"
@@ -208,15 +218,20 @@ const floor = Bodies.rectangle(
   }
 );
 
+
+// ------------------------------
+// 왼쪽 벽
+// 대부분 화면 바깥
+// ------------------------------
 
 const leftWall = Bodies.rectangle(
-  -40,
+  -11,
 
   GAME_HEIGHT / 2,
 
-  80,
+  30,
 
-  GAME_HEIGHT + 200,
+  GAME_HEIGHT + 100,
 
   {
     isStatic: true,
@@ -225,9 +240,7 @@ const leftWall = Bodies.rectangle(
 
     restitution: 0,
 
-    friction: 0.6,
-
-    frictionStatic: 1,
+    friction: 0.5,
 
     render: {
       fillStyle: "#222"
@@ -236,14 +249,18 @@ const leftWall = Bodies.rectangle(
 );
 
 
+// ------------------------------
+// 오른쪽 벽
+// ------------------------------
+
 const rightWall = Bodies.rectangle(
-  GAME_WIDTH + 40,
+  GAME_WIDTH + 11,
 
   GAME_HEIGHT / 2,
 
-  80,
+  30,
 
-  GAME_HEIGHT + 200,
+  GAME_HEIGHT + 100,
 
   {
     isStatic: true,
@@ -252,9 +269,7 @@ const rightWall = Bodies.rectangle(
 
     restitution: 0,
 
-    friction: 0.6,
-
-    frictionStatic: 1,
+    friction: 0.5,
 
     render: {
       fillStyle: "#222"
@@ -273,9 +288,9 @@ Composite.add(
 );
 
 
-// ======================================
-// 위치 제한
-// ======================================
+// ========================================
+// 안전한 X 위치
+// ========================================
 
 function clampX(
   x,
@@ -283,12 +298,12 @@ function clampX(
 ) {
 
   const min =
-    radius + 2;
+    radius + 5;
 
   const max =
     GAME_WIDTH -
     radius -
-    2;
+    5;
 
 
   return Math.max(
@@ -301,27 +316,9 @@ function clampX(
 }
 
 
-function clampY(
-  y,
-  radius
-) {
-
-  const maxY =
-    FLOOR_TOP -
-    radius -
-    2;
-
-
-  return Math.min(
-    y,
-    maxY
-  );
-}
-
-
-// ======================================
+// ========================================
 // 형태소 생성
-// ======================================
+// ========================================
 
 function createFruit(
   x,
@@ -340,10 +337,17 @@ function createFruit(
     );
 
 
+  // 바닥 속에서 생성되는 것 방지
+  const maximumY =
+    FLOOR_Y -
+    fruit.radius -
+    2;
+
+
   const safeY =
-    clampY(
+    Math.min(
       y,
-      fruit.radius
+      maximumY
     );
 
 
@@ -356,21 +360,25 @@ function createFruit(
       {
         label: "fruit",
 
+        // 튀는 힘 제거
         restitution: 0,
 
-        friction: 0.25,
+        friction: 0.22,
 
         frictionStatic: 0.5,
 
-        frictionAir: 0.02,
+        // 움직임 안정화
+        frictionAir: 0.01,
 
         density:
           0.0018 +
           level * 0.00015,
 
-        slop: 0.05,
+        // 작은 위치 오차 허용
+        // 너무 낮으면 바들거림 증가
+        slop: 0.04,
 
-        sleepThreshold: 30,
+        sleepThreshold: 45,
 
         render: {
           visible: false
@@ -389,18 +397,21 @@ function createFruit(
     Date.now();
 
 
+  // ==================================
   // 회전 완전 금지
+  // ==================================
+
   Body.setInertia(
     body,
     Infinity
   );
 
-  Body.setAngle(
+  Body.setAngularVelocity(
     body,
     0
   );
 
-  Body.setAngularVelocity(
+  Body.setAngle(
     body,
     0
   );
@@ -416,9 +427,9 @@ function createFruit(
 }
 
 
-// ======================================
+// ========================================
 // 렌더링
-// ======================================
+// ========================================
 
 Events.on(
   render,
@@ -436,13 +447,15 @@ Events.on(
       );
 
 
-    // 실제 형태소 이미지
+    // --------------------------------
+    // 실제 형태소
+    // --------------------------------
+
     bodies.forEach(
       function (body) {
 
         if (
-          body.label !==
-          "fruit"
+          body.label !== "fruit"
         ) {
           return;
         }
@@ -469,7 +482,7 @@ Events.on(
         }
 
 
-        const diameter =
+        const size =
           fruit.radius * 2;
 
 
@@ -480,6 +493,10 @@ Events.on(
           body.position.x,
           body.position.y
         );
+
+
+        // ★ 일부러 ctx.rotate() 없음
+        // 이미지가 빙글빙글 돌지 않음
 
 
         ctx.beginPath();
@@ -500,13 +517,11 @@ Events.on(
         ctx.drawImage(
           img,
 
-          -diameter / 2,
+          -size / 2,
+          -size / 2,
 
-          -diameter / 2,
-
-          diameter,
-
-          diameter
+          size,
+          size
         );
 
 
@@ -515,7 +530,10 @@ Events.on(
     );
 
 
-    // 게임오버 경계선
+    // --------------------------------
+    // 빨간 게임오버 선
+    // --------------------------------
+
     ctx.save();
 
     ctx.beginPath();
@@ -550,7 +568,10 @@ Events.on(
     }
 
 
-    // 세로 가이드라인
+    // --------------------------------
+    // 낙하 위치 가이드
+    // --------------------------------
+
     ctx.save();
 
     ctx.beginPath();
@@ -566,7 +587,7 @@ Events.on(
     );
 
     ctx.strokeStyle =
-      "rgba(0,0,0,0.1)";
+      "rgba(0,0,0,0.10)";
 
     ctx.lineWidth =
       1;
@@ -576,7 +597,10 @@ Events.on(
     ctx.restore();
 
 
-    // 미리보기
+    // --------------------------------
+    // 위쪽 미리보기
+    // --------------------------------
+
     const fruit =
       fruitLevels[
         currentLevel
@@ -597,7 +621,7 @@ Events.on(
     }
 
 
-    const diameter =
+    const size =
       fruit.radius * 2;
 
 
@@ -610,9 +634,7 @@ Events.on(
     ctx.arc(
       previewX,
       45,
-
       fruit.radius,
-
       0,
       Math.PI * 2
     );
@@ -625,14 +647,13 @@ Events.on(
       img,
 
       previewX -
-        diameter / 2,
+        size / 2,
 
       45 -
-        diameter / 2,
+        size / 2,
 
-      diameter,
-
-      diameter
+      size,
+      size
     );
 
 
@@ -641,9 +662,9 @@ Events.on(
 );
 
 
-// ======================================
-// 미리보기 위치
-// ======================================
+// ========================================
+// 마우스 / 터치 위치
+// ========================================
 
 function updatePreviewPosition(
   clientX
@@ -684,9 +705,9 @@ function updatePreviewPosition(
 }
 
 
-// ======================================
-// 조작
-// ======================================
+// ========================================
+// PC + 모바일 조작
+// ========================================
 
 render.canvas.addEventListener(
   "pointermove",
@@ -710,8 +731,12 @@ render.canvas.addEventListener(
     }
 
 
-    pointerDown =
-      true;
+    pointerDown = true;
+
+
+    updatePreviewPosition(
+      event.clientX
+    );
 
 
     try {
@@ -722,11 +747,6 @@ render.canvas.addEventListener(
         );
 
     } catch (error) {}
-
-
-    updatePreviewPosition(
-      event.clientX
-    );
   }
 );
 
@@ -744,8 +764,7 @@ render.canvas.addEventListener(
     }
 
 
-    pointerDown =
-      false;
+    pointerDown = false;
 
 
     updatePreviewPosition(
@@ -773,15 +792,14 @@ render.canvas.addEventListener(
 
   function () {
 
-    pointerDown =
-      false;
+    pointerDown = false;
   }
 );
 
 
-// ======================================
-// 떨어뜨리기
-// ======================================
+// ========================================
+// 형태소 떨어뜨리기
+// ========================================
 
 function dropFruit() {
 
@@ -793,8 +811,7 @@ function dropFruit() {
   }
 
 
-  canDrop =
-    false;
+  canDrop = false;
 
 
   createFruit(
@@ -820,8 +837,7 @@ function dropFruit() {
 
       if (!gameOver) {
 
-        canDrop =
-          true;
+        canDrop = true;
       }
 
     },
@@ -831,9 +847,9 @@ function dropFruit() {
 }
 
 
-// ======================================
-// 합체
-// ======================================
+// ========================================
+// 충돌 → 합체 예약
+// ========================================
 
 Events.on(
   engine,
@@ -852,17 +868,13 @@ Events.on(
         const a =
           pair.bodyA;
 
-
         const b =
           pair.bodyB;
 
 
         if (
-          a.label !==
-            "fruit" ||
-
-          b.label !==
-            "fruit"
+          a.label !== "fruit" ||
+          b.label !== "fruit"
         ) {
           return;
         }
@@ -888,330 +900,333 @@ Events.on(
           a.fruitLevel;
 
 
+        // 마지막 단계는 합체 안 함
         if (
           level >=
-          fruitLevels.length -
-            1
+          fruitLevels.length - 1
         ) {
           return;
         }
 
 
-        mergeFruits(
-          a,
-          b
-        );
+        // 중복 합체 방지
+        a.isMerging = true;
+        b.isMerging = true;
+
+
+        mergeQueue.push({
+          a: a,
+          b: b,
+          level: level
+        });
       }
     );
   }
 );
 
 
-// ======================================
-// 합체 처리
-// ======================================
+// ========================================
+// 예약된 합체 처리
+// ========================================
 
-function mergeFruits(
-  a,
-  b
-) {
+function processMergeQueue() {
 
   if (
-    a.isMerging ||
-    b.isMerging
+    mergeQueue.length === 0
   ) {
     return;
   }
 
 
-  a.isMerging =
-    true;
+  while (
+    mergeQueue.length > 0
+  ) {
 
-  b.isMerging =
-    true;
-
-
-  const nextLevel =
-    a.fruitLevel + 1;
+    const merge =
+      mergeQueue.shift();
 
 
-  const nextRadius =
-    fruitLevels[
-      nextLevel
-    ].radius;
+    const a =
+      merge.a;
+
+    const b =
+      merge.b;
 
 
-  const middleX =
-    (
-      a.position.x +
-      b.position.x
-    ) / 2;
+    // 이미 world에서 없어진 body인지 확인
+    const bodies =
+      Composite.allBodies(
+        engine.world
+      );
 
 
-  const middleY =
-    (
-      a.position.y +
-      b.position.y
-    ) / 2;
+    if (
+      !bodies.includes(a) ||
+      !bodies.includes(b)
+    ) {
+      continue;
+    }
 
 
-  const safeX =
-    clampX(
-      middleX,
-      nextRadius
+    const nextLevel =
+      merge.level + 1;
+
+
+    const newRadius =
+      fruitLevels[
+        nextLevel
+      ].radius;
+
+
+    let newX =
+      (
+        a.position.x +
+        b.position.x
+      ) / 2;
+
+
+    let newY =
+      (
+        a.position.y +
+        b.position.y
+      ) / 2;
+
+
+    newX =
+      clampX(
+        newX,
+        newRadius
+      );
+
+
+    // ---------------------------------
+    // 새 형태소가 바닥에 박히지 않도록
+    // ---------------------------------
+
+    const lowestSafeY =
+      FLOOR_Y -
+      newRadius -
+      3;
+
+
+    newY =
+      Math.min(
+        newY,
+        lowestSafeY
+      );
+
+
+    // 합체할 때 아주 약간 위로
+    // 공간을 확보
+    newY -= 2;
+
+
+    // 기존 2개 삭제
+    Composite.remove(
+      engine.world,
+      a
     );
 
 
-  const safeY =
-    clampY(
-      middleY - 4,
-      nextRadius
+    Composite.remove(
+      engine.world,
+      b
     );
 
 
-  Composite.remove(
-    engine.world,
-    a
-  );
+    // 새 형태소 생성
+    const newFruit =
+      createFruit(
+        newX,
+        newY,
+        nextLevel
+      );
 
 
-  Composite.remove(
-    engine.world,
-    b
-  );
+    // 합체 직후 속도 없음
+    Body.setVelocity(
+      newFruit,
+      {
+        x: 0,
+        y: 0
+      }
+    );
 
 
-  setTimeout(
-    function () {
+    Body.setAngularVelocity(
+      newFruit,
+      0
+    );
 
-      const merged =
-        createFruit(
-          safeX,
-          safeY,
-          nextLevel
+
+    score +=
+      fruitLevels[
+        nextLevel
+      ].score;
+
+
+    updateScore();
+  }
+}
+
+
+// ========================================
+// 비정상 이탈만 복구
+//
+// 중요:
+// 매 프레임 위치를 강제로 고치는 게 아님.
+// 진짜 게임판 밖으로 빠진 경우에만 실행.
+// 그래서 바들거림을 만들지 않음.
+// ========================================
+
+function emergencyRescue() {
+
+  const bodies =
+    Composite.allBodies(
+      engine.world
+    );
+
+
+  bodies.forEach(
+    function (body) {
+
+      if (
+        body.label !== "fruit"
+      ) {
+        return;
+      }
+
+
+      const radius =
+        fruitLevels[
+          body.fruitLevel
+        ].radius;
+
+
+      // --------------------------------
+      // 아래로 완전히 빠진 경우
+      // --------------------------------
+
+      if (
+        body.position.y >
+        GAME_HEIGHT + 60
+      ) {
+
+        Body.setPosition(
+          body,
+          {
+            x:
+              clampX(
+                body.position.x,
+                radius
+              ),
+
+            y:
+              FLOOR_Y -
+              radius -
+              10
+          }
         );
 
 
-      Body.setVelocity(
-        merged,
-        {
-          x: 0,
-          y: 0
-        }
-      );
+        Body.setVelocity(
+          body,
+          {
+            x: 0,
+            y: 0
+          }
+        );
 
 
-      Body.setInertia(
-        merged,
-        Infinity
-      );
+        Body.setAngularVelocity(
+          body,
+          0
+        );
 
 
-      Body.setAngularVelocity(
-        merged,
-        0
-      );
+        return;
+      }
 
 
-      score +=
-        fruitLevels[
-          nextLevel
-        ].score;
+      // --------------------------------
+      // 옆으로 완전히 빠진 경우
+      // --------------------------------
+
+      if (
+        body.position.x <
+          -50 ||
+
+        body.position.x >
+          GAME_WIDTH + 50
+      ) {
+
+        Body.setPosition(
+          body,
+          {
+            x:
+              clampX(
+                body.position.x,
+                radius
+              ),
+
+            y:
+              body.position.y
+          }
+        );
 
 
-      updateScore();
+        Body.setVelocity(
+          body,
+          {
+            x: 0,
+            y:
+              Math.min(
+                body.velocity.y,
+                4
+              )
+          }
+        );
+      }
 
-    },
 
-    0
+      // --------------------------------
+      // 비정상적으로 빠른 속도만 제한
+      // --------------------------------
+
+      const maxSpeed = 14;
+
+
+      if (
+        body.speed >
+        maxSpeed
+      ) {
+
+        const scale =
+          maxSpeed /
+          body.speed;
+
+
+        Body.setVelocity(
+          body,
+          {
+            x:
+              body.velocity.x *
+              scale,
+
+            y:
+              body.velocity.y *
+              scale
+          }
+        );
+      }
+    }
   );
 }
 
 
-// ======================================
-// 형태소 안정화
-// ======================================
-
-function stabilizeFruit(
-  body
-) {
-
-  if (
-    body.label !==
-    "fruit"
-  ) {
-    return;
-  }
-
-
-  const fruit =
-    fruitLevels[
-      body.fruitLevel
-    ];
-
-
-  const radius =
-    fruit.radius;
-
-
-  let x =
-    body.position.x;
-
-  let y =
-    body.position.y;
-
-
-  let corrected =
-    false;
-
-
-  // 왼쪽 이탈
-  if (
-    x - radius <
-    -5
-  ) {
-
-    x =
-      radius + 2;
-
-    corrected =
-      true;
-  }
-
-
-  // 오른쪽 이탈
-  if (
-    x + radius >
-    GAME_WIDTH + 5
-  ) {
-
-    x =
-      GAME_WIDTH -
-      radius -
-      2;
-
-    corrected =
-      true;
-  }
-
-
-  // 아래 이탈
-  if (
-    y + radius >
-    FLOOR_TOP + 12
-  ) {
-
-    y =
-      FLOOR_TOP -
-      radius -
-      2;
-
-    corrected =
-      true;
-  }
-
-
-  if (
-    y >
-    GAME_HEIGHT + 50
-  ) {
-
-    y =
-      FLOOR_TOP -
-      radius -
-      4;
-
-    corrected =
-      true;
-  }
-
-
-  if (corrected) {
-
-    Body.setPosition(
-      body,
-      {
-        x,
-        y
-      }
-    );
-
-
-    Body.setVelocity(
-      body,
-      {
-        x: 0,
-        y: 0
-      }
-    );
-  }
-
-
-  // 거의 멈췄으면 미세 속도 제거
-  if (
-    body.speed < 0.08 &&
-    !body.isMerging
-  ) {
-
-    Body.setVelocity(
-      body,
-      {
-        x: 0,
-        y: 0
-      }
-    );
-  }
-
-
-  // 너무 빠른 이동 방지
-  const MAX_SPEED =
-    10;
-
-
-  const vx =
-    Math.max(
-      -MAX_SPEED,
-
-      Math.min(
-        MAX_SPEED,
-        body.velocity.x
-      )
-    );
-
-
-  const vy =
-    Math.max(
-      -MAX_SPEED,
-
-      Math.min(
-        MAX_SPEED,
-        body.velocity.y
-      )
-    );
-
-
-  if (
-    vx !==
-      body.velocity.x ||
-
-    vy !==
-      body.velocity.y
-  ) {
-
-    Body.setVelocity(
-      body,
-      {
-        x: vx,
-        y: vy
-      }
-    );
-  }
-}
-
-
-// ======================================
-// 매 프레임
-// ======================================
+// ========================================
+// 매 물리 프레임 이후
+// ========================================
 
 Events.on(
   engine,
@@ -1219,15 +1234,12 @@ Events.on(
 
   function () {
 
-    const bodies =
-      Composite.allBodies(
-        engine.world
-      );
+    // 충돌 처리 끝난 다음 합체
+    processMergeQueue();
 
 
-    bodies.forEach(
-      stabilizeFruit
-    );
+    // 정말 비정상 이탈했을 때만 복구
+    emergencyRescue();
 
 
     checkGameOver();
@@ -1235,9 +1247,9 @@ Events.on(
 );
 
 
-// ======================================
-// 게임오버 판정
-// ======================================
+// ========================================
+// 게임오버 검사
+// ========================================
 
 function checkGameOver() {
 
@@ -1250,17 +1262,9 @@ function checkGameOver() {
     Date.now();
 
 
-  const fruits =
+  const bodies =
     Composite.allBodies(
       engine.world
-    ).filter(
-      function (body) {
-
-        return (
-          body.label ===
-          "fruit"
-        );
-      }
     );
 
 
@@ -1270,18 +1274,27 @@ function checkGameOver() {
 
   for (
     const body
-    of fruits
+    of bodies
   ) {
 
     if (
+      body.label !== "fruit"
+    ) {
+      continue;
+    }
+
+
+    // 막 떨어진 형태소는 제외
+    if (
       now -
-        body.spawnTime <
+      body.spawnTime <
       1200
     ) {
       continue;
     }
 
 
+    // 합체 예정 형태소 제외
     if (
       body.isMerging
     ) {
@@ -1300,16 +1313,17 @@ function checkGameOver() {
       radius;
 
 
+    // 빨간선을 넘어가 있고
+    // 거의 움직이지 않을 때
     if (
       top <
         GAME_OVER_LINE_Y &&
 
       body.speed <
-        1.2
+        1.1
     ) {
 
-      danger =
-        true;
+      danger = true;
 
       break;
     }
@@ -1318,28 +1332,27 @@ function checkGameOver() {
 
   if (!danger) {
 
-    dangerStartedAt =
-      null;
+    dangerStartTime = null;
 
     return;
   }
 
 
   if (
-    dangerStartedAt ===
-    null
+    dangerStartTime === null
   ) {
 
-    dangerStartedAt =
+    dangerStartTime =
       now;
 
     return;
   }
 
 
+  // 1.5초 이상 계속 선 위에 있으면 게임 종료
   if (
     now -
-      dangerStartedAt >=
+    dangerStartTime >=
     1500
   ) {
 
@@ -1348,9 +1361,9 @@ function checkGameOver() {
 }
 
 
-// ======================================
+// ========================================
 // 게임오버
-// ======================================
+// ========================================
 
 function endGame() {
 
@@ -1359,12 +1372,9 @@ function endGame() {
   }
 
 
-  gameOver =
-    true;
+  gameOver = true;
 
-
-  canDrop =
-    false;
+  canDrop = false;
 
 
   const finalScore =
@@ -1406,9 +1416,9 @@ function endGame() {
 }
 
 
-// ======================================
+// ========================================
 // 랭킹 등록
-// ======================================
+// ========================================
 
 const registerButton =
   document.getElementById(
@@ -1444,9 +1454,7 @@ if (registerButton) {
 
       const nickname =
         nicknameInput
-          ? nicknameInput
-              .value
-              .trim()
+          ? nicknameInput.value.trim()
           : "";
 
 
@@ -1462,12 +1470,37 @@ if (registerButton) {
       }
 
 
+      if (
+        nickname.length > 10
+      ) {
+
+        if (message) {
+
+          message.textContent =
+            "닉네임은 10자 이하로 입력해주세요.";
+        }
+
+        return;
+      }
+
+
       try {
 
         if (message) {
 
           message.textContent =
             "등록 중...";
+        }
+
+
+        if (
+          typeof saveScore !==
+          "function"
+        ) {
+
+          throw new Error(
+            "랭킹 서버 연결을 확인해주세요."
+          );
         }
 
 
@@ -1519,9 +1552,9 @@ if (registerButton) {
 }
 
 
-// ======================================
-// 엔터로 등록
-// ======================================
+// ========================================
+// Enter → 랭킹 등록
+// ========================================
 
 const nicknameInput =
   document.getElementById(
@@ -1540,8 +1573,7 @@ if (
     function (event) {
 
       if (
-        event.key ===
-        "Enter"
+        event.key === "Enter"
       ) {
 
         registerButton.click();
@@ -1551,9 +1583,9 @@ if (
 }
 
 
-// ======================================
+// ========================================
 // 다시하기
-// ======================================
+// ========================================
 
 const restartButton =
   document.getElementById(
@@ -1574,9 +1606,9 @@ if (restartButton) {
 }
 
 
-// ======================================
+// ========================================
 // 점수 표시
-// ======================================
+// ========================================
 
 function updateScore() {
 
@@ -1594,9 +1626,9 @@ function updateScore() {
 }
 
 
-// ======================================
+// ========================================
 // NEXT 표시
-// ======================================
+// ========================================
 
 function updateNextDisplay() {
 
@@ -1618,9 +1650,9 @@ function updateNextDisplay() {
 }
 
 
-// ======================================
+// ========================================
 // 시작
-// ======================================
+// ========================================
 
 updateScore();
 
