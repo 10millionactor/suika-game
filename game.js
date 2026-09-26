@@ -49,17 +49,15 @@ function randomStartLevel() {
 
 // 단계별 정보
 const fruitLevels = [
-  { radius: 18, color: "#ff9aa2", score: 1 },
-  { radius: 23, color: "#ffb7b2", score: 3 },
-  { radius: 29, color: "#ffdac1", score: 6 },
-  { radius: 36, color: "#e2f0cb", score: 10 },
-  { radius: 44, color: "#b5ead7", score: 15 },
-  { radius: 53, color: "#c7ceea", score: 21 },
-  { radius: 63, color: "#b8bedd", score: 28 },
-  { radius: 74, color: "#f7b2bd", score: 36 },
-  { radius: 86, color: "#ffa69e", score: 45 },
-  { radius: 98, color: "#84dcc6", score: 55 },
-  { radius: 112, color: "#6a994e", score: 66 }
+  { radius: 20, image: "images/01.png", score: 1 },
+  { radius: 27, image: "images/02.png", score: 3 },
+  { radius: 35, image: "images/03.png", score: 6 },
+  { radius: 44, image: "images/04.png", score: 10 },
+  { radius: 54, image: "images/05.png", score: 15 },
+  { radius: 65, image: "images/06.png", score: 21 },
+  { radius: 78, image: "images/07.png", score: 28 },
+  { radius: 92, image: "images/08.png", score: 36 },
+  { radius: 108, image: "images/09.png", score: 50 }
 ];
 
 // =========================
