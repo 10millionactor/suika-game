@@ -2,6 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
+
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1.0"
@@ -16,17 +17,24 @@
 
     body {
       margin: 0;
-      background: #f3f3f3;
+      background: #f4f4f4;
       font-family: Arial, sans-serif;
       text-align: center;
+      color: #222;
     }
 
     h1 {
-      margin: 20px 0 10px;
+      margin: 24px 0 12px;
     }
+
+    /* =====================
+       점수 / NEXT
+    ===================== */
 
     .info {
       width: 360px;
+      max-width: calc(100vw - 20px);
+
       margin: 0 auto 10px;
 
       display: flex;
@@ -46,20 +54,28 @@
     #nextFruit {
       width: 40px;
       height: 40px;
+
       object-fit: contain;
+
       border-radius: 50%;
     }
+
+    /* =====================
+       게임판
+    ===================== */
 
     #game {
       width: 360px;
       height: 600px;
 
-      margin: auto;
+      max-width: calc(100vw - 20px);
+
+      margin: 0 auto;
 
       background: white;
 
       border: 3px solid #222;
-      border-radius: 12px;
+      border-radius: 14px;
 
       overflow: hidden;
 
@@ -68,11 +84,81 @@
 
     canvas {
       display: block;
+
+      max-width: 100%;
     }
 
-    /* ========================
-       게임오버 팝업
-    ======================== */
+    /* =====================
+       랭킹
+    ===================== */
+
+    .ranking-box {
+      width: 360px;
+      max-width: calc(100vw - 20px);
+
+      margin: 24px auto 50px;
+
+      padding: 20px;
+
+      background: white;
+
+      border-radius: 16px;
+
+      box-shadow:
+        0 4px 16px
+        rgba(0, 0, 0, 0.08);
+    }
+
+    .ranking-box h2 {
+      margin-top: 0;
+      margin-bottom: 15px;
+    }
+
+    #rankingList {
+      list-style: none;
+
+      margin: 0;
+      padding: 0;
+    }
+
+    .ranking-item {
+      display: grid;
+
+      grid-template-columns:
+        50px 1fr 80px;
+
+      align-items: center;
+
+      padding: 11px 4px;
+
+      border-bottom:
+        1px solid #eeeeee;
+    }
+
+    .ranking-item:last-child {
+      border-bottom: none;
+    }
+
+    .ranking-rank {
+      font-weight: bold;
+    }
+
+    .ranking-name {
+      text-align: left;
+
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .ranking-score {
+      text-align: right;
+      font-weight: bold;
+    }
+
+    /* =====================
+       게임오버 모달
+    ===================== */
 
     #gameOverModal {
       position: fixed;
@@ -83,39 +169,52 @@
       width: 100%;
       height: 100%;
 
-      background: rgba(0, 0, 0, 0.65);
-
       display: none;
 
       justify-content: center;
       align-items: center;
 
-      z-index: 1000;
+      padding: 20px;
+
+      background:
+        rgba(0, 0, 0, 0.65);
+
+      z-index: 9999;
     }
 
     .modal-box {
       width: 320px;
+      max-width: 100%;
 
       background: white;
 
-      padding: 25px;
+      padding: 26px 22px;
 
       border-radius: 20px;
 
       box-shadow:
-        0 10px 30px rgba(0, 0, 0, 0.25);
+        0 12px 40px
+        rgba(0, 0, 0, 0.3);
     }
 
     .modal-box h2 {
-      margin-top: 0;
+      margin:
+        0 0 12px;
+
       font-size: 30px;
     }
 
-    #finalScore {
-      font-size: 28px;
-      font-weight: bold;
+    .final-score-label {
+      font-size: 14px;
+      color: #777;
+    }
 
-      margin: 15px 0 20px;
+    #finalScore {
+      margin:
+        6px 0 20px;
+
+      font-size: 32px;
+      font-weight: bold;
     }
 
     #nickname {
@@ -123,7 +222,9 @@
 
       padding: 12px;
 
-      border: 2px solid #ddd;
+      border:
+        2px solid #dddddd;
+
       border-radius: 10px;
 
       font-size: 16px;
@@ -141,20 +242,26 @@
       width: 100%;
 
       margin-top: 10px;
+
       padding: 12px;
 
       border: none;
       border-radius: 10px;
 
-      cursor: pointer;
-
       font-size: 16px;
       font-weight: bold;
+
+      cursor: pointer;
     }
 
     #registerScore {
       background: #222;
       color: white;
+    }
+
+    #registerScore:disabled {
+      opacity: 0.5;
+      cursor: default;
     }
 
     #restartButton {
@@ -163,80 +270,25 @@
     }
 
     #registerMessage {
-      min-height: 20px;
+      min-height: 22px;
 
       margin-top: 10px;
 
       font-size: 14px;
     }
 
-    /* ========================
-       랭킹
-    ======================== */
-
-    .ranking-box {
-      width: 360px;
-
-      margin: 20px auto 50px;
-
-      background: white;
-
-      padding: 18px;
-
-      border-radius: 16px;
-
-      text-align: left;
-    }
-
-    .ranking-box h2 {
-      text-align: center;
-
-      margin-top: 0;
-    }
-
-    #rankingList {
-      margin: 0;
-      padding: 0;
-
-      list-style: none;
-    }
-
-    .ranking-item {
-      display: grid;
-
-      grid-template-columns:
-        45px 1fr 80px;
-
-      padding: 10px 5px;
-
-      border-bottom: 1px solid #eee;
-
-      align-items: center;
-    }
-
-    .ranking-rank {
-      font-weight: bold;
-    }
-
-    .ranking-name {
-      overflow: hidden;
-
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .ranking-score {
-      text-align: right;
-
-      font-weight: bold;
-    }
+    /* =====================
+       모바일
+    ===================== */
 
     @media (max-width: 400px) {
-      #game,
-      .info,
-      .ranking-box {
-        width: calc(100vw - 20px);
-        max-width: 360px;
+
+      h1 {
+        font-size: 26px;
+      }
+
+      .info {
+        font-size: 16px;
       }
     }
   </style>
@@ -246,6 +298,7 @@
 
   <h1>🍉 수박게임</h1>
 
+  <!-- 점수 / 다음 공 -->
   <div class="info">
 
     <div>
@@ -255,6 +308,7 @@
 
     <div class="next-box">
       NEXT
+
       <img
         id="nextFruit"
         alt="다음 공"
@@ -263,26 +317,37 @@
 
   </div>
 
+
+  <!-- 게임판 -->
   <div id="game"></div>
 
+
+  <!-- TOP 10 랭킹 -->
   <div class="ranking-box">
 
     <h2>🏆 TOP 10</h2>
 
     <ul id="rankingList">
-      <li>랭킹 불러오는 중...</li>
+
+      <li>
+        랭킹 불러오는 중...
+      </li>
+
     </ul>
 
   </div>
 
-  <!-- 게임오버 팝업 -->
+
+  <!-- 게임오버 창 -->
   <div id="gameOverModal">
 
     <div class="modal-box">
 
-      <h2>GAME OVER</h2>
+      <h2>
+        GAME OVER
+      </h2>
 
-      <div>
+      <div class="final-score-label">
         최종 점수
       </div>
 
@@ -294,7 +359,7 @@
         id="nickname"
         type="text"
         maxlength="10"
-        placeholder="닉네임 입력"
+        placeholder="닉네임을 입력하세요"
         autocomplete="off"
       >
 
@@ -302,7 +367,7 @@
         id="registerScore"
         class="modal-button"
       >
-        랭킹 등록
+        🏆 랭킹 등록
       </button>
 
       <div id="registerMessage"></div>
@@ -318,20 +383,24 @@
 
   </div>
 
+
   <!-- Matter.js -->
   <script
     src="https://cdn.jsdelivr.net/npm/matter-js@0.20.0/build/matter.min.js"
   ></script>
 
-  <!-- Supabase -->
+
+  <!-- Supabase 공식 JS 라이브러리 -->
   <script
     src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
   ></script>
 
-  <!-- DB 연결 -->
+
+  <!-- Supabase 연결 / 랭킹 -->
   <script src="./supabase.js"></script>
 
-  <!-- 게임 -->
+
+  <!-- 수박게임 -->
   <script src="./game.js"></script>
 
 </body>
