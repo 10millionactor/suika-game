@@ -3,11 +3,11 @@
 // ==============================
 
 // 여기에 네 Supabase Project URL
-const SUPABASE_URL =
+const SUPABASE_URL = https://webigdugwinewuyhybnx.supabase.co
   "여기에_SUPABASE_URL";
 
 // 여기에 publishable 또는 anon key
-const SUPABASE_KEY =
+const SUPABASE_KEY = sb_publishable_45Z1QOfL9KydKB60_wHMJA_Ztr1a1e9
   "여기에_SUPABASE_KEY";
 
 // 클라이언트 생성
