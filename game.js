@@ -139,9 +139,9 @@ function createFruit(x, y, level) {
         sprite: {
           texture: fruit.image,
 
-          // 이미지가 256 x 256 기준
+          // 떨어지는 사진 크기
           xScale: (fruit.radius * 1.0) / 256,
-yScale: (fruit.radius * 1.0) / 256
+          yScale: (fruit.radius * 1.0) / 256
         }
       }
     }
