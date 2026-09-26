@@ -143,8 +143,7 @@ function createFruit(x, y, level) {
 
   return body;
 }
-  return body;
-}
+  
 
 // =========================
 // 미리보기 공 그리기
@@ -153,8 +152,37 @@ function createFruit(x, y, level) {
 Events.on(render, "afterRender", function () {
   const ctx = render.context;
 
-  const fruit = fruitLevels[currentLevel];
+  const fruitImages = fruitLevels.map(function (fruit) {
+  const img = new Image();
+  img.src = fruit.image;
+  return img;
+});
 
+Events.on(render, "afterRender", function () {
+  const ctx = render.context;
+
+  const fruit = fruitLevels[currentLevel];
+  const img = fruitImages[currentLevel];
+
+  // 가이드라인
+  ctx.beginPath();
+  ctx.moveTo(previewX, 0);
+  ctx.lineTo(previewX, GAME_HEIGHT);
+  ctx.strokeStyle = "rgba(0, 0, 0, 0.12)";
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // 미리보기 이미지
+  if (img.complete) {
+    ctx.drawImage(
+      img,
+      previewX - fruit.radius,
+      45 - fruit.radius,
+      fruit.radius * 2,
+      fruit.radius * 2
+    );
+  }
+});
   // 세로 가이드라인
   ctx.beginPath();
   ctx.moveTo(previewX, 0);
