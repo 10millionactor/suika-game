@@ -7,22 +7,35 @@
   <title>수박게임</title>
 
   <style>
-    body {
-      margin: 0;
-      background: #f3f3f3;
-      font-family: Arial, sans-serif;
-      text-align: center;
-    }
+   .info {
+  width: 360px;
+  margin: 0 auto 10px;
 
-    h1 {
-      margin-top: 40px;
-    }
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 
-    #game {
-     #game {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.next-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#nextFruit {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+}
+
+#game {
   width: 360px;
   height: 600px;
-  margin: 30px auto;
+  margin: 0 auto;
+  touch-action: none;
 }
       background: white;
       border: 3px solid #222;
@@ -33,11 +46,21 @@
 
 <body>
 
-  <h1>🍉 수박게임</h1>
+ <h1>🍉 수박게임</h1>
 
-  <p>게임 준비중!</p>
+<div class="info">
+  <div>
+    점수:
+    <span id="score">0</span>
+  </div>
 
-  <div id="game"></div>
+  <div class="next-box">
+    NEXT
+    <div id="nextFruit"></div>
+  </div>
+</div>
+
+<div id="game"></div>
   
 <script src="https://cdn.jsdelivr.net/npm/matter-js@0.20.0/build/matter.min.js"></script>
 <script src="game.js"></script>
