@@ -27,6 +27,10 @@
       margin: 24px 0 12px;
     }
 
+    /* =========================
+       상단 점수 / NEXT
+       ========================= */
+
     .info {
       width: 360px;
       max-width: calc(100vw - 20px);
@@ -55,6 +59,10 @@
       border-radius: 50%;
     }
 
+    /* =========================
+       게임
+       ========================= */
+
     #game {
       width: 360px;
       height: 600px;
@@ -69,6 +77,7 @@
       border-radius: 14px;
 
       overflow: hidden;
+
       touch-action: none;
     }
 
@@ -76,6 +85,10 @@
       display: block;
       max-width: 100%;
     }
+
+    /* =========================
+       랭킹
+       ========================= */
 
     .ranking-box {
       width: 360px;
@@ -85,6 +98,7 @@
       padding: 20px;
 
       background: #fff;
+
       border-radius: 16px;
 
       box-shadow:
@@ -103,7 +117,12 @@
 
     .ranking-item {
       display: grid;
-      grid-template-columns: 50px 1fr 80px;
+
+      grid-template-columns:
+        50px
+        1fr
+        80px;
+
       align-items: center;
 
       padding: 11px 4px;
@@ -132,7 +151,9 @@
       font-weight: bold;
     }
 
-    /* 게임오버 모달 */
+    /* =========================
+       게임오버 모달
+       ========================= */
 
     #gameOverModal {
       position: fixed;
@@ -166,6 +187,7 @@
 
     .modal-box h2 {
       margin: 0 0 12px;
+
       font-size: 30px;
     }
 
@@ -181,7 +203,9 @@
       font-weight: bold;
     }
 
-    /* 입력창 */
+    /* =========================
+       입력창
+       ========================= */
 
     #nickname,
     #phone {
@@ -221,7 +245,9 @@
       word-break: keep-all;
     }
 
-    /* 버튼 */
+    /* =========================
+       버튼
+       ========================= */
 
     .modal-button {
       width: 100%;
@@ -261,6 +287,10 @@
       font-size: 14px;
     }
 
+    /* =========================
+       모바일
+       ========================= */
+
     @media (max-width: 400px) {
       h1 {
         font-size: 26px;
@@ -276,6 +306,9 @@
 <body>
 
   <h1>🍉 수박게임</h1>
+
+
+  <!-- 점수 / NEXT -->
 
   <div class="info">
 
@@ -295,7 +328,13 @@
 
   </div>
 
+
+  <!-- 게임 화면 -->
+
   <div id="game"></div>
+
+
+  <!-- 공개 랭킹 -->
 
   <div class="ranking-box">
 
@@ -338,8 +377,8 @@
       >
 
 
-      <!-- 전화번호: 선택사항 -->
-      <!-- 중요: 버튼 안이 아니라 완전히 독립된 input -->
+      <!-- 전화번호 -->
+      <!-- 선택사항이며 버튼 밖에 있음 -->
 
       <input
         id="phone"
@@ -351,13 +390,15 @@
       >
 
 
+      <!-- 개인정보 안내 -->
+
       <div class="privacy-note">
         전화번호는 상품 전달을 위한 연락 목적으로만 사용되며,
         입력하지 않아도 랭킹 등록이 가능합니다.
       </div>
 
 
-      <!-- 여기서부터 버튼 시작 -->
+      <!-- 랭킹 등록 버튼 -->
 
       <button
         id="registerScore"
@@ -368,8 +409,12 @@
       </button>
 
 
+      <!-- 결과 메시지 -->
+
       <div id="registerMessage"></div>
 
+
+      <!-- 다시하기 -->
 
       <button
         id="restartButton"
@@ -398,10 +443,10 @@
   ></script>
 
 
-  <!-- 프로젝트 JS -->
+  <!-- 프로젝트 JS / 캐시 방지 -->
 
-  <script src="./supabase.js?v=20260930-10"></script>
-  <script src="./game.js?v=20260930-10"></script>
+  <script src="./supabase.js?v=20260930-20"></script>
+  <script src="./game.js?v=20260930-20"></script>
 
 </body>
 </html>
