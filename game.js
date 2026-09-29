@@ -25,13 +25,15 @@ const FLOOR_TOP = 596;
 // 엔진
 // ========================================
 
-const engine = Engine.create();
+const engine =
+  Engine.create();
+
 
 engine.gravity.x = 0;
 
-// 기존보다 살짝 약한 중력
-// → 떨어질 때 덜 딱딱함
+// 부드럽게 떨어지게
 engine.gravity.y = 0.82;
+
 
 engine.enableSleeping = true;
 
@@ -41,26 +43,43 @@ engine.constraintIterations = 4;
 
 
 const gameElement =
-  document.getElementById("game");
+  document.getElementById(
+    "game"
+  );
 
 
-const render = Render.create({
-  element: gameElement,
-  engine: engine,
+const render =
+  Render.create({
+    element:
+      gameElement,
 
-  options: {
-    width: GAME_WIDTH,
-    height: GAME_HEIGHT,
-    wireframes: false,
-    background: "#ffffff"
-  }
-});
+    engine:
+      engine,
+
+    options: {
+      width:
+        GAME_WIDTH,
+
+      height:
+        GAME_HEIGHT,
+
+      wireframes:
+        false,
+
+      background:
+        "#ffffff"
+    }
+  });
 
 
-Render.run(render);
+Render.run(
+  render
+);
 
 
-const runner = Runner.create();
+const runner =
+  Runner.create();
+
 
 Runner.run(
   runner,
@@ -78,41 +97,49 @@ const fruitLevels = [
     image: "images/01.png",
     score: 1
   },
+
   {
     radius: 27,
     image: "images/02.png",
     score: 3
   },
+
   {
     radius: 35,
     image: "images/03.png",
     score: 6
   },
+
   {
     radius: 44,
     image: "images/04.png",
     score: 10
   },
+
   {
     radius: 54,
     image: "images/05.png",
     score: 15
   },
+
   {
     radius: 65,
     image: "images/06.png",
     score: 21
   },
+
   {
     radius: 78,
     image: "images/07.png",
     score: 28
   },
+
   {
     radius: 92,
     image: "images/08.png",
     score: 36
   },
+
   {
     radius: 108,
     image: "images/09.png",
@@ -126,14 +153,20 @@ const fruitLevels = [
 // ========================================
 
 const fruitImages =
-  fruitLevels.map(function (fruit) {
+  fruitLevels.map(
+    function (fruit) {
 
-    const img = new Image();
+      const img =
+        new Image();
 
-    img.src = fruit.image;
 
-    return img;
-  });
+      img.src =
+        fruit.image;
+
+
+      return img;
+    }
+  );
 
 
 // ========================================
@@ -161,7 +194,7 @@ const mergeQueue = [];
 
 
 // ========================================
-// 시작 형태소
+// 랜덤 형태소
 // ========================================
 
 function randomStartLevel() {
@@ -175,90 +208,104 @@ function randomStartLevel() {
 let currentLevel =
   randomStartLevel();
 
+
 let nextLevel =
   randomStartLevel();
 
 
 // ========================================
-// 바닥 / 벽
+// 바닥
 // ========================================
 
-const floor = Bodies.rectangle(
-  GAME_WIDTH / 2,
+const floor =
+  Bodies.rectangle(
+    GAME_WIDTH / 2,
 
-  FLOOR_TOP + 22,
+    FLOOR_TOP + 22,
 
-  GAME_WIDTH + 80,
+    GAME_WIDTH + 80,
 
-  44,
+    44,
 
-  {
-    isStatic: true,
+    {
+      isStatic: true,
 
-    label: "floor",
+      label: "floor",
 
-    restitution: 0,
+      restitution: 0,
 
-    // 기존보다 덜 뻑뻑하게
-    friction: 0.13,
+      friction: 0.13,
 
-    frictionStatic: 0.18,
+      frictionStatic: 0.18,
 
-    render: {
-      fillStyle: "#222"
+      render: {
+        fillStyle:
+          "#222"
+      }
     }
-  }
-);
+  );
 
 
-const leftWall = Bodies.rectangle(
-  -15,
+// ========================================
+// 왼쪽 벽
+// ========================================
 
-  GAME_HEIGHT / 2,
+const leftWall =
+  Bodies.rectangle(
+    -15,
 
-  34,
+    GAME_HEIGHT / 2,
 
-  GAME_HEIGHT + 120,
+    34,
 
-  {
-    isStatic: true,
+    GAME_HEIGHT + 120,
 
-    label: "wall",
+    {
+      isStatic: true,
 
-    restitution: 0,
+      label: "wall",
 
-    friction: 0.06,
+      restitution: 0,
 
-    render: {
-      fillStyle: "#222"
+      friction: 0.06,
+
+      render: {
+        fillStyle:
+          "#222"
+      }
     }
-  }
-);
+  );
 
 
-const rightWall = Bodies.rectangle(
-  GAME_WIDTH + 15,
+// ========================================
+// 오른쪽 벽
+// ========================================
 
-  GAME_HEIGHT / 2,
+const rightWall =
+  Bodies.rectangle(
+    GAME_WIDTH + 15,
 
-  34,
+    GAME_HEIGHT / 2,
 
-  GAME_HEIGHT + 120,
+    34,
 
-  {
-    isStatic: true,
+    GAME_HEIGHT + 120,
 
-    label: "wall",
+    {
+      isStatic: true,
 
-    restitution: 0,
+      label: "wall",
 
-    friction: 0.06,
+      restitution: 0,
 
-    render: {
-      fillStyle: "#222"
+      friction: 0.06,
+
+      render: {
+        fillStyle:
+          "#222"
+      }
     }
-  }
-);
+  );
 
 
 Composite.add(
@@ -283,6 +330,7 @@ function clampX(
   const minX =
     radius + 4;
 
+
   const maxX =
     GAME_WIDTH -
     radius -
@@ -291,6 +339,7 @@ function clampX(
 
   return Math.max(
     minX,
+
     Math.min(
       maxX,
       x
@@ -328,7 +377,9 @@ function createFruit(
 ) {
 
   const fruit =
-    fruitLevels[level];
+    fruitLevels[
+      level
+    ];
 
 
   const safeX =
@@ -352,30 +403,37 @@ function createFruit(
       fruit.radius,
 
       {
-        label: "fruit",
+        label:
+          "fruit",
 
-        // 살짝 말랑하게
-        restitution: 0.08,
+        // 살짝 통통
+        restitution:
+          0.08,
 
-        // 둥글둥글 굴러가게
-        friction: 0.055,
+        // 자연스럽게 굴러감
+        friction:
+          0.055,
 
-        frictionStatic: 0.10,
+        frictionStatic:
+          0.10,
 
-        // 감속을 너무 세게 하지 않게
-        frictionAir: 0.0015,
+        frictionAir:
+          0.0015,
 
         density:
           0.0018 +
-          level * 0.00012,
+          level *
+          0.00012,
 
-        slop: 0.04,
+        slop:
+          0.04,
 
-        // 너무 빨리 잠들지 않게
-        sleepThreshold: 120,
+        sleepThreshold:
+          120,
 
         render: {
-          visible: false
+          visible:
+            false
         }
       }
     );
@@ -384,14 +442,15 @@ function createFruit(
   body.fruitLevel =
     level;
 
+
   body.isMerging =
     false;
+
 
   body.spawnTime =
     Date.now();
 
 
-  // 생성 직후엔 스핀 없음
   Body.setAngularVelocity(
     body,
     0
@@ -442,7 +501,8 @@ Events.on(
       function (body) {
 
         if (
-          body.label !== "fruit"
+          body.label !==
+          "fruit"
         ) {
           return;
         }
@@ -470,7 +530,8 @@ Events.on(
 
 
         const size =
-          fruit.radius * 2;
+          fruit.radius *
+          2;
 
 
         ctx.save();
@@ -482,7 +543,6 @@ Events.on(
         );
 
 
-        // 자연스럽게 구르는 회전 표현
         ctx.rotate(
           body.angle
         );
@@ -524,25 +584,31 @@ Events.on(
 
     ctx.beginPath();
 
+
     ctx.moveTo(
       0,
       GAME_OVER_LINE_Y
     );
+
 
     ctx.lineTo(
       GAME_WIDTH,
       GAME_OVER_LINE_Y
     );
 
+
     ctx.strokeStyle =
       "#ff3b30";
+
 
     ctx.lineWidth =
       3;
 
+
     ctx.setLineDash(
       [8, 6]
     );
+
 
     ctx.stroke();
 
@@ -559,28 +625,33 @@ Events.on(
 
     ctx.beginPath();
 
+
     ctx.moveTo(
       previewX,
       0
     );
+
 
     ctx.lineTo(
       previewX,
       GAME_HEIGHT
     );
 
+
     ctx.strokeStyle =
       "rgba(0,0,0,0.10)";
 
+
     ctx.lineWidth =
       1;
+
 
     ctx.stroke();
 
     ctx.restore();
 
 
-    // 현재 형태소 미리보기
+    // 미리보기
     const previewFruit =
       fruitLevels[
         currentLevel
@@ -602,11 +673,11 @@ Events.on(
 
 
     const previewSize =
-      previewFruit.radius * 2;
+      previewFruit.radius *
+      2;
 
 
     ctx.save();
-
 
     ctx.beginPath();
 
@@ -614,9 +685,7 @@ Events.on(
     ctx.arc(
       previewX,
       45,
-
       previewFruit.radius,
-
       0,
       Math.PI * 2
     );
@@ -629,10 +698,10 @@ Events.on(
       previewImage,
 
       previewX -
-        previewSize / 2,
+      previewSize / 2,
 
       45 -
-        previewSize / 2,
+      previewSize / 2,
 
       previewSize,
       previewSize
@@ -713,7 +782,8 @@ render.canvas.addEventListener(
     }
 
 
-    pointerDown = true;
+    pointerDown =
+      true;
 
 
     updatePreviewPosition(
@@ -746,7 +816,8 @@ render.canvas.addEventListener(
     }
 
 
-    pointerDown = false;
+    pointerDown =
+      false;
 
 
     updatePreviewPosition(
@@ -774,7 +845,8 @@ render.canvas.addEventListener(
 
   function () {
 
-    pointerDown = false;
+    pointerDown =
+      false;
   }
 );
 
@@ -793,7 +865,8 @@ function dropFruit() {
   }
 
 
-  canDrop = false;
+  canDrop =
+    false;
 
 
   createFruit(
@@ -819,7 +892,8 @@ function dropFruit() {
 
       if (!gameOver) {
 
-        canDrop = true;
+        canDrop =
+          true;
       }
 
     },
@@ -830,7 +904,7 @@ function dropFruit() {
 
 
 // ========================================
-// 충돌 → 합체 예약
+// 충돌 감지
 // ========================================
 
 Events.on(
@@ -850,13 +924,17 @@ Events.on(
         const a =
           pair.bodyA;
 
+
         const b =
           pair.bodyB;
 
 
         if (
-          a.label !== "fruit" ||
-          b.label !== "fruit"
+          a.label !==
+            "fruit" ||
+
+          b.label !==
+            "fruit"
         ) {
           return;
         }
@@ -884,14 +962,19 @@ Events.on(
 
         if (
           level >=
-          fruitLevels.length - 1
+          fruitLevels.length -
+          1
         ) {
           return;
         }
 
 
-        a.isMerging = true;
-        b.isMerging = true;
+        a.isMerging =
+          true;
+
+
+        b.isMerging =
+          true;
 
 
         mergeQueue.push({
@@ -912,7 +995,8 @@ Events.on(
 function processMergeQueue() {
 
   while (
-    mergeQueue.length > 0
+    mergeQueue.length >
+    0
   ) {
 
     const item =
@@ -921,6 +1005,7 @@ function processMergeQueue() {
 
     const a =
       item.a;
+
 
     const b =
       item.b;
@@ -933,8 +1018,12 @@ function processMergeQueue() {
 
 
     if (
-      !worldBodies.includes(a) ||
-      !worldBodies.includes(b)
+      !worldBodies.includes(
+        a
+      ) ||
+      !worldBodies.includes(
+        b
+      )
     ) {
       continue;
     }
@@ -981,10 +1070,7 @@ function processMergeQueue() {
       );
 
 
-    // ==================================
-    // 합체 전 두 형태소의 속도를 기억
-    // ==================================
-
+    // 기존 움직임 일부 계승
     const mergedVelocity = {
       x:
         (
@@ -1026,11 +1112,6 @@ function processMergeQueue() {
         nextLevel
       );
 
-
-    // ==================================
-    // 움직임을 완전히 끊지 않고
-    // 일부 이어받음
-    // ==================================
 
     Body.setVelocity(
       merged,
@@ -1081,7 +1162,8 @@ function physicsSafety() {
     function (body) {
 
       if (
-        body.label !== "fruit"
+        body.label !==
+        "fruit"
       ) {
         return;
       }
@@ -1093,7 +1175,7 @@ function physicsSafety() {
         ].radius;
 
 
-      // 너무 빠른 이동만 제한
+      // 너무 빠른 속도 제한
       const MAX_SPEED =
         14;
 
@@ -1123,11 +1205,7 @@ function physicsSafety() {
       }
 
 
-      // =================================
-      // 자연스러운 회전은 허용하되
-      // 미친 스핀만 제한
-      // =================================
-
+      // 과도한 스핀 제한
       const MAX_ANGULAR_SPEED =
         0.16;
 
@@ -1150,10 +1228,7 @@ function physicsSafety() {
       }
 
 
-      // =================================
-      // 완전히 아래로 빠진 경우만 구조
-      // =================================
-
+      // 아래로 완전히 빠짐
       if (
         body.position.y >
         GAME_HEIGHT + 70
@@ -1250,7 +1325,7 @@ Events.on(
 
 
 // ========================================
-// 게임오버 검사
+// 게임오버 판정
 // ========================================
 
 function checkGameOver() {
@@ -1280,7 +1355,8 @@ function checkGameOver() {
   ) {
 
     if (
-      body.label !== "fruit"
+      body.label !==
+      "fruit"
     ) {
       continue;
     }
@@ -1321,7 +1397,8 @@ function checkGameOver() {
         1.1
     ) {
 
-      danger = true;
+      danger =
+        true;
 
       break;
     }
@@ -1330,14 +1407,16 @@ function checkGameOver() {
 
   if (!danger) {
 
-    dangerStartTime = null;
+    dangerStartTime =
+      null;
 
     return;
   }
 
 
   if (
-    dangerStartTime === null
+    dangerStartTime ===
+    null
   ) {
 
     dangerStartTime =
@@ -1369,9 +1448,12 @@ function endGame() {
   }
 
 
-  gameOver = true;
+  gameOver =
+    true;
 
-  canDrop = false;
+
+  canDrop =
+    false;
 
 
   const finalScore =
@@ -1392,10 +1474,68 @@ function endGame() {
     );
 
 
+  const phone =
+    document.getElementById(
+      "phone"
+    );
+
+
+  const registerButton =
+    document.getElementById(
+      "registerScore"
+    );
+
+
+  const message =
+    document.getElementById(
+      "registerMessage"
+    );
+
+
   if (finalScore) {
 
     finalScore.textContent =
       score.toLocaleString();
+  }
+
+
+  if (nickname) {
+
+    nickname.disabled =
+      false;
+
+    nickname.readOnly =
+      false;
+
+    nickname.value =
+      "";
+  }
+
+
+  if (phone) {
+
+    phone.disabled =
+      false;
+
+    phone.readOnly =
+      false;
+
+    phone.value =
+      "";
+  }
+
+
+  if (registerButton) {
+
+    registerButton.disabled =
+      false;
+  }
+
+
+  if (message) {
+
+    message.textContent =
+      "";
   }
 
 
@@ -1408,7 +1548,14 @@ function endGame() {
 
   if (nickname) {
 
-    nickname.focus();
+    setTimeout(
+      function () {
+
+        nickname.focus();
+
+      },
+      50
+    );
   }
 }
 
@@ -1443,6 +1590,12 @@ if (registerButton) {
         );
 
 
+      const phoneInput =
+        document.getElementById(
+          "phone"
+        );
+
+
       const message =
         document.getElementById(
           "registerMessage"
@@ -1452,6 +1605,14 @@ if (registerButton) {
       const nickname =
         nicknameInput
           ? nicknameInput
+              .value
+              .trim()
+          : "";
+
+
+      const phone =
+        phoneInput
+          ? phoneInput
               .value
               .trim()
           : "";
@@ -1470,7 +1631,8 @@ if (registerButton) {
 
 
       if (
-        nickname.length > 10
+        nickname.length >
+        10
       ) {
 
         if (message) {
@@ -1480,6 +1642,30 @@ if (registerButton) {
         }
 
         return;
+      }
+
+
+      // 전화번호는 선택사항
+      if (phone) {
+
+        const phonePattern =
+          /^[0-9+() -]{7,20}$/;
+
+
+        if (
+          !phonePattern.test(
+            phone
+          )
+        ) {
+
+          if (message) {
+
+            message.textContent =
+              "전화번호 형식을 확인해주세요.";
+          }
+
+          return;
+        }
       }
 
 
@@ -1503,9 +1689,14 @@ if (registerButton) {
         }
 
 
+        // =================================
+        // 닉네임 + 점수 + 전화번호 전달
+        // =================================
+
         await saveScore(
           nickname,
-          score
+          score,
+          phone
         );
 
 
@@ -1515,6 +1706,20 @@ if (registerButton) {
 
         registerButton.disabled =
           true;
+
+
+        if (nicknameInput) {
+
+          nicknameInput.disabled =
+            true;
+        }
+
+
+        if (phoneInput) {
+
+          phoneInput.disabled =
+            true;
+        }
 
 
         if (message) {
@@ -1534,7 +1739,9 @@ if (registerButton) {
 
       } catch (error) {
 
-        console.error(error);
+        console.error(
+          error
+        );
 
 
         if (message) {
@@ -1550,7 +1757,7 @@ if (registerButton) {
 
 
 // ========================================
-// Enter 등록
+// Enter → 등록
 // ========================================
 
 const nicknameInput =
@@ -1570,7 +1777,36 @@ if (
     function (event) {
 
       if (
-        event.key === "Enter"
+        event.key ===
+        "Enter"
+      ) {
+
+        registerButton.click();
+      }
+    }
+  );
+}
+
+
+const phoneInput =
+  document.getElementById(
+    "phone"
+  );
+
+
+if (
+  phoneInput &&
+  registerButton
+) {
+
+  phoneInput.addEventListener(
+    "keydown",
+
+    function (event) {
+
+      if (
+        event.key ===
+        "Enter"
       ) {
 
         registerButton.click();
@@ -1597,14 +1833,185 @@ if (restartButton) {
 
     function () {
 
-      location.reload();
+      resetGame();
     }
   );
 }
 
 
 // ========================================
-// 점수
+// 게임 초기화
+// ========================================
+
+function resetGame() {
+
+  const bodies =
+    Composite.allBodies(
+      engine.world
+    );
+
+
+  // 과일만 삭제
+  bodies.forEach(
+    function (body) {
+
+      if (
+        body.label ===
+        "fruit"
+      ) {
+
+        Composite.remove(
+          engine.world,
+          body
+        );
+      }
+    }
+  );
+
+
+  mergeQueue.length =
+    0;
+
+
+  score =
+    0;
+
+
+  previewX =
+    GAME_WIDTH / 2;
+
+
+  canDrop =
+    true;
+
+
+  pointerDown =
+    false;
+
+
+  gameOver =
+    false;
+
+
+  scoreRegistered =
+    false;
+
+
+  dangerStartTime =
+    null;
+
+
+  currentLevel =
+    randomStartLevel();
+
+
+  nextLevel =
+    randomStartLevel();
+
+
+  // 닉네임 초기화
+  const nickname =
+    document.getElementById(
+      "nickname"
+    );
+
+
+  if (nickname) {
+
+    nickname.value =
+      "";
+
+    nickname.disabled =
+      false;
+
+    nickname.readOnly =
+      false;
+  }
+
+
+  // 전화번호 초기화
+  const phone =
+    document.getElementById(
+      "phone"
+    );
+
+
+  if (phone) {
+
+    phone.value =
+      "";
+
+    phone.disabled =
+      false;
+
+    phone.readOnly =
+      false;
+  }
+
+
+  // 등록 버튼 초기화
+  const registerButton =
+    document.getElementById(
+      "registerScore"
+    );
+
+
+  if (registerButton) {
+
+    registerButton.disabled =
+      false;
+  }
+
+
+  // 메시지 초기화
+  const message =
+    document.getElementById(
+      "registerMessage"
+    );
+
+
+  if (message) {
+
+    message.textContent =
+      "";
+  }
+
+
+  // 모달 닫기
+  const modal =
+    document.getElementById(
+      "gameOverModal"
+    );
+
+
+  if (modal) {
+
+    modal.style.display =
+      "none";
+  }
+
+
+  const finalScore =
+    document.getElementById(
+      "finalScore"
+    );
+
+
+  if (finalScore) {
+
+    finalScore.textContent =
+      "0";
+  }
+
+
+  updateScore();
+
+  updateNextDisplay();
+}
+
+
+// ========================================
+// 점수 표시
 // ========================================
 
 function updateScore() {
