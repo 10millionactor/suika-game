@@ -17,7 +17,6 @@ const GAME_WIDTH = 360;
 const GAME_HEIGHT = 600;
 
 const GAME_OVER_LINE_Y = 110;
-
 const FLOOR_TOP = 596;
 
 
@@ -25,15 +24,10 @@ const FLOOR_TOP = 596;
 // 엔진
 // ========================================
 
-const engine =
-  Engine.create();
-
+const engine = Engine.create();
 
 engine.gravity.x = 0;
-
-// 부드럽게 떨어지게
 engine.gravity.y = 0.82;
-
 
 engine.enableSleeping = true;
 
@@ -43,38 +37,23 @@ engine.constraintIterations = 4;
 
 
 const gameElement =
-  document.getElementById(
-    "game"
-  );
+  document.getElementById("game");
 
 
-const render =
-  Render.create({
-    element:
-      gameElement,
+const render = Render.create({
+  element: gameElement,
+  engine: engine,
 
-    engine:
-      engine,
-
-    options: {
-      width:
-        GAME_WIDTH,
-
-      height:
-        GAME_HEIGHT,
-
-      wireframes:
-        false,
-
-      background:
-        "#ffffff"
-    }
-  });
+  options: {
+    width: GAME_WIDTH,
+    height: GAME_HEIGHT,
+    wireframes: false,
+    background: "#ffffff"
+  }
+});
 
 
-Render.run(
-  render
-);
+Render.run(render);
 
 
 const runner =
@@ -97,49 +76,41 @@ const fruitLevels = [
     image: "images/01.png",
     score: 1
   },
-
   {
     radius: 27,
     image: "images/02.png",
     score: 3
   },
-
   {
     radius: 35,
     image: "images/03.png",
     score: 6
   },
-
   {
     radius: 44,
     image: "images/04.png",
     score: 10
   },
-
   {
     radius: 54,
     image: "images/05.png",
     score: 15
   },
-
   {
     radius: 65,
     image: "images/06.png",
     score: 21
   },
-
   {
     radius: 78,
     image: "images/07.png",
     score: 28
   },
-
   {
     radius: 92,
     image: "images/08.png",
     score: 36
   },
-
   {
     radius: 108,
     image: "images/09.png",
@@ -153,20 +124,16 @@ const fruitLevels = [
 // ========================================
 
 const fruitImages =
-  fruitLevels.map(
-    function (fruit) {
+  fruitLevels.map(function (fruit) {
 
-      const img =
-        new Image();
+    const img =
+      new Image();
 
+    img.src =
+      fruit.image;
 
-      img.src =
-        fruit.image;
-
-
-      return img;
-    }
-  );
+    return img;
+  });
 
 
 // ========================================
@@ -194,7 +161,7 @@ const mergeQueue = [];
 
 
 // ========================================
-// 랜덤 형태소
+// 랜덤 시작 형태소
 // ========================================
 
 function randomStartLevel() {
@@ -208,23 +175,19 @@ function randomStartLevel() {
 let currentLevel =
   randomStartLevel();
 
-
 let nextLevel =
   randomStartLevel();
 
 
 // ========================================
-// 바닥
+// 바닥 / 벽
 // ========================================
 
 const floor =
   Bodies.rectangle(
     GAME_WIDTH / 2,
-
     FLOOR_TOP + 22,
-
     GAME_WIDTH + 80,
-
     44,
 
     {
@@ -239,25 +202,17 @@ const floor =
       frictionStatic: 0.18,
 
       render: {
-        fillStyle:
-          "#222"
+        fillStyle: "#222"
       }
     }
   );
 
-
-// ========================================
-// 왼쪽 벽
-// ========================================
 
 const leftWall =
   Bodies.rectangle(
     -15,
-
     GAME_HEIGHT / 2,
-
     34,
-
     GAME_HEIGHT + 120,
 
     {
@@ -270,25 +225,17 @@ const leftWall =
       friction: 0.06,
 
       render: {
-        fillStyle:
-          "#222"
+        fillStyle: "#222"
       }
     }
   );
 
 
-// ========================================
-// 오른쪽 벽
-// ========================================
-
 const rightWall =
   Bodies.rectangle(
     GAME_WIDTH + 15,
-
     GAME_HEIGHT / 2,
-
     34,
-
     GAME_HEIGHT + 120,
 
     {
@@ -301,8 +248,7 @@ const rightWall =
       friction: 0.06,
 
       render: {
-        fillStyle:
-          "#222"
+        fillStyle: "#222"
       }
     }
   );
@@ -319,7 +265,7 @@ Composite.add(
 
 
 // ========================================
-// 위치 제한
+// 위치 보정
 // ========================================
 
 function clampX(
@@ -330,7 +276,6 @@ function clampX(
   const minX =
     radius + 4;
 
-
   const maxX =
     GAME_WIDTH -
     radius -
@@ -339,7 +284,6 @@ function clampX(
 
   return Math.max(
     minX,
-
     Math.min(
       maxX,
       x
@@ -377,9 +321,7 @@ function createFruit(
 ) {
 
   const fruit =
-    fruitLevels[
-      level
-    ];
+    fruitLevels[level];
 
 
   const safeX =
@@ -403,37 +345,26 @@ function createFruit(
       fruit.radius,
 
       {
-        label:
-          "fruit",
+        label: "fruit",
 
-        // 살짝 통통
-        restitution:
-          0.08,
+        restitution: 0.08,
 
-        // 자연스럽게 굴러감
-        friction:
-          0.055,
+        friction: 0.055,
 
-        frictionStatic:
-          0.10,
+        frictionStatic: 0.10,
 
-        frictionAir:
-          0.0015,
+        frictionAir: 0.0015,
 
         density:
           0.0018 +
-          level *
-          0.00012,
+          level * 0.00012,
 
-        slop:
-          0.04,
+        slop: 0.04,
 
-        sleepThreshold:
-          120,
+        sleepThreshold: 120,
 
         render: {
-          visible:
-            false
+          visible: false
         }
       }
     );
@@ -442,10 +373,8 @@ function createFruit(
   body.fruitLevel =
     level;
 
-
   body.isMerging =
     false;
-
 
   body.spawnTime =
     Date.now();
@@ -530,8 +459,7 @@ Events.on(
 
 
         const size =
-          fruit.radius *
-          2;
+          fruit.radius * 2;
 
 
         ctx.save();
@@ -565,10 +493,8 @@ Events.on(
 
         ctx.drawImage(
           img,
-
           -size / 2,
           -size / 2,
-
           size,
           size
         );
@@ -584,31 +510,25 @@ Events.on(
 
     ctx.beginPath();
 
-
     ctx.moveTo(
       0,
       GAME_OVER_LINE_Y
     );
-
 
     ctx.lineTo(
       GAME_WIDTH,
       GAME_OVER_LINE_Y
     );
 
-
     ctx.strokeStyle =
       "#ff3b30";
-
 
     ctx.lineWidth =
       3;
 
-
     ctx.setLineDash(
       [8, 6]
     );
-
 
     ctx.stroke();
 
@@ -625,33 +545,28 @@ Events.on(
 
     ctx.beginPath();
 
-
     ctx.moveTo(
       previewX,
       0
     );
-
 
     ctx.lineTo(
       previewX,
       GAME_HEIGHT
     );
 
-
     ctx.strokeStyle =
       "rgba(0,0,0,0.10)";
 
-
     ctx.lineWidth =
       1;
-
 
     ctx.stroke();
 
     ctx.restore();
 
 
-    // 미리보기
+    // 현재 형태소 미리보기
     const previewFruit =
       fruitLevels[
         currentLevel
@@ -673,11 +588,11 @@ Events.on(
 
 
     const previewSize =
-      previewFruit.radius *
-      2;
+      previewFruit.radius * 2;
 
 
     ctx.save();
+
 
     ctx.beginPath();
 
@@ -696,13 +611,10 @@ Events.on(
 
     ctx.drawImage(
       previewImage,
-
       previewX -
-      previewSize / 2,
-
+        previewSize / 2,
       45 -
-      previewSize / 2,
-
+        previewSize / 2,
       previewSize,
       previewSize
     );
@@ -757,7 +669,7 @@ function updatePreviewPosition(
 
 
 // ========================================
-// 조작
+// 포인터 이벤트
 // ========================================
 
 render.canvas.addEventListener(
@@ -924,7 +836,6 @@ Events.on(
         const a =
           pair.bodyA;
 
-
         const b =
           pair.bodyB;
 
@@ -963,7 +874,7 @@ Events.on(
         if (
           level >=
           fruitLevels.length -
-          1
+            1
         ) {
           return;
         }
@@ -971,7 +882,6 @@ Events.on(
 
         a.isMerging =
           true;
-
 
         b.isMerging =
           true;
@@ -1006,7 +916,6 @@ function processMergeQueue() {
     const a =
       item.a;
 
-
     const b =
       item.b;
 
@@ -1018,12 +927,8 @@ function processMergeQueue() {
 
 
     if (
-      !worldBodies.includes(
-        a
-      ) ||
-      !worldBodies.includes(
-        b
-      )
+      !worldBodies.includes(a) ||
+      !worldBodies.includes(b)
     ) {
       continue;
     }
@@ -1070,7 +975,6 @@ function processMergeQueue() {
       );
 
 
-    // 기존 움직임 일부 계승
     const mergedVelocity = {
       x:
         (
@@ -1205,7 +1109,7 @@ function physicsSafety() {
       }
 
 
-      // 과도한 스핀 제한
+      // 과도한 회전 제한
       const MAX_ANGULAR_SPEED =
         0.16;
 
@@ -1228,7 +1132,7 @@ function physicsSafety() {
       }
 
 
-      // 아래로 완전히 빠짐
+      // 아래 완전 이탈
       if (
         body.position.y >
         GAME_HEIGHT + 70
@@ -1480,15 +1384,15 @@ function endGame() {
     );
 
 
-  const registerButton =
-    document.getElementById(
-      "registerScore"
-    );
-
-
   const message =
     document.getElementById(
       "registerMessage"
+    );
+
+
+  const registerButton =
+    document.getElementById(
+      "registerScore"
     );
 
 
@@ -1501,33 +1405,24 @@ function endGame() {
 
   if (nickname) {
 
+    nickname.value = "";
+
     nickname.disabled =
       false;
 
     nickname.readOnly =
       false;
-
-    nickname.value =
-      "";
   }
 
 
   if (phone) {
 
+    phone.value = "";
+
     phone.disabled =
       false;
 
     phone.readOnly =
-      false;
-
-    phone.value =
-      "";
-  }
-
-
-  if (registerButton) {
-
-    registerButton.disabled =
       false;
   }
 
@@ -1536,6 +1431,13 @@ function endGame() {
 
     message.textContent =
       "";
+  }
+
+
+  if (registerButton) {
+
+    registerButton.disabled =
+      false;
   }
 
 
@@ -1554,6 +1456,7 @@ function endGame() {
         nickname.focus();
 
       },
+
       50
     );
   }
@@ -1631,8 +1534,7 @@ if (registerButton) {
 
 
       if (
-        nickname.length >
-        10
+        nickname.length > 10
       ) {
 
         if (message) {
@@ -1688,10 +1590,6 @@ if (registerButton) {
           );
         }
 
-
-        // =================================
-        // 닉네임 + 점수 + 전화번호 전달
-        // =================================
 
         await saveScore(
           nickname,
@@ -1851,7 +1749,6 @@ function resetGame() {
     );
 
 
-  // 과일만 삭제
   bodies.forEach(
     function (body) {
 
@@ -2031,7 +1928,7 @@ function updateScore() {
 
 
 // ========================================
-// NEXT
+// NEXT 표시
 // ========================================
 
 function updateNextDisplay() {
