@@ -27,6 +27,10 @@
       margin: 24px 0 12px;
     }
 
+    /* =========================
+       상단 점수 / NEXT
+       ========================= */
+
     .info {
       width: 360px;
       max-width: calc(100vw - 20px);
@@ -52,9 +56,12 @@
       height: 40px;
 
       object-fit: contain;
-
       border-radius: 50%;
     }
+
+    /* =========================
+       게임 화면
+       ========================= */
 
     #game {
       width: 360px;
@@ -64,7 +71,7 @@
 
       margin: 0 auto;
 
-      background: #ffffff;
+      background: #fff;
 
       border: 3px solid #222;
       border-radius: 14px;
@@ -79,6 +86,10 @@
       max-width: 100%;
     }
 
+    /* =========================
+       랭킹
+       ========================= */
+
     .ranking-box {
       width: 360px;
       max-width: calc(100vw - 20px);
@@ -86,7 +97,7 @@
       margin: 24px auto 50px;
       padding: 20px;
 
-      background: #ffffff;
+      background: #fff;
 
       border-radius: 16px;
 
@@ -117,8 +128,7 @@
 
       padding: 11px 4px;
 
-      border-bottom:
-        1px solid #eeeeee;
+      border-bottom: 1px solid #eee;
     }
 
     .ranking-item:last-child {
@@ -157,8 +167,7 @@
 
       padding: 20px;
 
-      background:
-        rgba(0, 0, 0, 0.65);
+      background: rgba(0, 0, 0, 0.65);
 
       z-index: 9999;
     }
@@ -169,13 +178,12 @@
 
       padding: 26px 22px;
 
-      background: #ffffff;
+      background: #fff;
 
       border-radius: 20px;
 
       box-shadow:
-        0 12px 40px
-        rgba(0, 0, 0, 0.30);
+        0 12px 40px rgba(0, 0, 0, 0.3);
     }
 
     .modal-box h2 {
@@ -185,7 +193,7 @@
     }
 
     .final-score-label {
-      color: #777777;
+      color: #777;
       font-size: 14px;
     }
 
@@ -206,16 +214,16 @@
 
       padding: 12px;
 
-      border: 2px solid #dddddd;
+      border: 2px solid #ddd;
       border-radius: 10px;
 
       outline: none;
 
+      background: #fff;
+      color: #222;
+
       font-size: 16px;
       text-align: center;
-
-      background: #ffffff;
-      color: #222222;
     }
 
     #phone {
@@ -224,13 +232,13 @@
 
     #nickname:focus,
     #phone:focus {
-      border-color: #999999;
+      border-color: #888;
     }
 
     .privacy-note {
       margin-top: 8px;
 
-      color: #888888;
+      color: #888;
 
       font-size: 11px;
       line-height: 1.5;
@@ -258,8 +266,8 @@
     }
 
     #registerScore {
-      background: #222222;
-      color: #ffffff;
+      background: #222;
+      color: #fff;
     }
 
     #registerScore:disabled {
@@ -268,8 +276,8 @@
     }
 
     #restartButton {
-      background: #eeeeee;
-      color: #222222;
+      background: #eee;
+      color: #222;
     }
 
     #registerMessage {
@@ -279,6 +287,10 @@
 
       font-size: 14px;
     }
+
+    /* =========================
+       모바일
+       ========================= */
 
     @media (max-width: 400px) {
       h1 {
@@ -311,27 +323,23 @@
 
     <div>
       점수:
-      <span id="score">
-        0
-      </span>
+      <span id="score">0</span>
     </div>
 
     <div class="next-box">
-
       NEXT
 
       <img
         id="nextFruit"
         alt="다음 형태소"
       >
-
     </div>
 
   </div>
 
 
   <!-- =========================
-       게임 화면
+       게임
        ========================= -->
 
   <div id="game"></div>
@@ -339,6 +347,7 @@
 
   <!-- =========================
        공개 랭킹
+       전화번호는 여기 표시 안 됨
        ========================= -->
 
   <div class="ranking-box">
@@ -381,9 +390,7 @@
       </div>
 
 
-      <!-- =====================
-           닉네임
-           ===================== -->
+      <!-- 닉네임 입력창 -->
 
       <input
         id="nickname"
@@ -394,10 +401,8 @@
       >
 
 
-      <!-- =====================
-           전화번호
-           선택사항
-           ===================== -->
+      <!-- 전화번호 입력창 -->
+      <!-- ★ 버튼 밖에 독립적으로 존재함 -->
 
       <input
         id="phone"
@@ -409,9 +414,7 @@
       >
 
 
-      <!-- =====================
-           개인정보 안내
-           ===================== -->
+      <!-- 개인정보 안내 -->
 
       <div class="privacy-note">
         전화번호는 상품 전달을 위한 연락 목적으로만 사용되며,
@@ -419,9 +422,8 @@
       </div>
 
 
-      <!-- =====================
-           랭킹 등록 버튼
-           ===================== -->
+      <!-- ★ 여기서부터 랭킹 버튼 시작 -->
+      <!-- phone input은 이미 위에서 완전히 닫힘 -->
 
       <button
         id="registerScore"
@@ -432,16 +434,8 @@
       </button>
 
 
-      <!-- =====================
-           등록 결과
-           ===================== -->
-
       <div id="registerMessage"></div>
 
-
-      <!-- =====================
-           다시하기
-           ===================== -->
 
       <button
         id="restartButton"
@@ -476,14 +470,15 @@
 
   <!-- =========================
        프로젝트 JS
+       캐시 방지 버전
        ========================= -->
 
   <script
-    src="./supabase.js?v=20260930-3"
+    src="./supabase.js?v=20260930-5"
   ></script>
 
   <script
-    src="./game.js?v=20260930-3"
+    src="./game.js?v=20260930-5"
   ></script>
 
 </body>
