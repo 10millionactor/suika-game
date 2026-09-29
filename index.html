@@ -27,10 +27,6 @@
       margin: 24px 0 12px;
     }
 
-    /* =========================
-       상단 점수 / NEXT
-       ========================= */
-
     .info {
       width: 360px;
       max-width: calc(100vw - 20px);
@@ -59,10 +55,6 @@
       border-radius: 50%;
     }
 
-    /* =========================
-       게임 화면
-       ========================= */
-
     #game {
       width: 360px;
       height: 600px;
@@ -77,7 +69,6 @@
       border-radius: 14px;
 
       overflow: hidden;
-
       touch-action: none;
     }
 
@@ -85,10 +76,6 @@
       display: block;
       max-width: 100%;
     }
-
-    /* =========================
-       랭킹
-       ========================= */
 
     .ranking-box {
       width: 360px;
@@ -98,7 +85,6 @@
       padding: 20px;
 
       background: #fff;
-
       border-radius: 16px;
 
       box-shadow:
@@ -111,19 +97,13 @@
 
     #rankingList {
       list-style: none;
-
       margin: 0;
       padding: 0;
     }
 
     .ranking-item {
       display: grid;
-
-      grid-template-columns:
-        50px
-        1fr
-        80px;
-
+      grid-template-columns: 50px 1fr 80px;
       align-items: center;
 
       padding: 11px 4px;
@@ -152,9 +132,7 @@
       font-weight: bold;
     }
 
-    /* =========================
-       게임오버 모달
-       ========================= */
+    /* 게임오버 모달 */
 
     #gameOverModal {
       position: fixed;
@@ -188,7 +166,6 @@
 
     .modal-box h2 {
       margin: 0 0 12px;
-
       font-size: 30px;
     }
 
@@ -204,9 +181,7 @@
       font-weight: bold;
     }
 
-    /* =========================
-       입력창
-       ========================= */
+    /* 입력창 */
 
     #nickname,
     #phone {
@@ -246,9 +221,7 @@
       word-break: keep-all;
     }
 
-    /* =========================
-       버튼
-       ========================= */
+    /* 버튼 */
 
     .modal-button {
       width: 100%;
@@ -288,10 +261,6 @@
       font-size: 14px;
     }
 
-    /* =========================
-       모바일
-       ========================= */
-
     @media (max-width: 400px) {
       h1 {
         font-size: 26px;
@@ -306,18 +275,7 @@
 
 <body>
 
-  <!-- =========================
-       제목
-       ========================= -->
-
-  <h1>
-    🍉 수박게임
-  </h1>
-
-
-  <!-- =========================
-       점수 / NEXT
-       ========================= -->
+  <h1>🍉 수박게임</h1>
 
   <div class="info">
 
@@ -337,31 +295,14 @@
 
   </div>
 
-
-  <!-- =========================
-       게임
-       ========================= -->
-
   <div id="game"></div>
-
-
-  <!-- =========================
-       공개 랭킹
-       전화번호는 여기 표시 안 됨
-       ========================= -->
 
   <div class="ranking-box">
 
-    <h2>
-      🏆 TOP 10
-    </h2>
+    <h2>🏆 TOP 10</h2>
 
     <ul id="rankingList">
-
-      <li>
-        랭킹 불러오는 중...
-      </li>
-
+      <li>랭킹 불러오는 중...</li>
     </ul>
 
   </div>
@@ -375,22 +316,18 @@
 
     <div class="modal-box">
 
-      <h2>
-        GAME OVER
-      </h2>
-
+      <h2>GAME OVER</h2>
 
       <div class="final-score-label">
         최종 점수
       </div>
-
 
       <div id="finalScore">
         0
       </div>
 
 
-      <!-- 닉네임 입력창 -->
+      <!-- 닉네임 -->
 
       <input
         id="nickname"
@@ -401,8 +338,8 @@
       >
 
 
-      <!-- 전화번호 입력창 -->
-      <!-- ★ 버튼 밖에 독립적으로 존재함 -->
+      <!-- 전화번호: 선택사항 -->
+      <!-- 중요: 버튼 안이 아니라 완전히 독립된 input -->
 
       <input
         id="phone"
@@ -414,16 +351,13 @@
       >
 
 
-      <!-- 개인정보 안내 -->
-
       <div class="privacy-note">
         전화번호는 상품 전달을 위한 연락 목적으로만 사용되며,
         입력하지 않아도 랭킹 등록이 가능합니다.
       </div>
 
 
-      <!-- ★ 여기서부터 랭킹 버튼 시작 -->
-      <!-- phone input은 이미 위에서 완전히 닫힘 -->
+      <!-- 여기서부터 버튼 시작 -->
 
       <button
         id="registerScore"
@@ -450,36 +384,24 @@
   </div>
 
 
-  <!-- =========================
-       Matter.js
-       ========================= -->
+  <!-- Matter.js -->
 
   <script
     src="https://cdn.jsdelivr.net/npm/matter-js@0.20.0/build/matter.min.js"
   ></script>
 
 
-  <!-- =========================
-       Supabase
-       ========================= -->
+  <!-- Supabase -->
 
   <script
     src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
   ></script>
 
 
-  <!-- =========================
-       프로젝트 JS
-       캐시 방지 버전
-       ========================= -->
+  <!-- 프로젝트 JS -->
 
-  <script
-    src="./supabase.js?v=20260930-5"
-  ></script>
-
-  <script
-    src="./game.js?v=20260930-5"
-  ></script>
+  <script src="./supabase.js?v=20260930-10"></script>
+  <script src="./game.js?v=20260930-10"></script>
 
 </body>
 </html>
