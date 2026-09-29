@@ -30,6 +30,7 @@
     .info {
       width: 360px;
       max-width: calc(100vw - 20px);
+
       margin: 0 auto 10px;
 
       display: flex;
@@ -49,18 +50,21 @@
     #nextFruit {
       width: 40px;
       height: 40px;
+
       object-fit: contain;
+
       border-radius: 50%;
     }
 
     #game {
       width: 360px;
       height: 600px;
+
       max-width: calc(100vw - 20px);
 
       margin: 0 auto;
 
-      background: #fff;
+      background: #ffffff;
 
       border: 3px solid #222;
       border-radius: 14px;
@@ -82,7 +86,8 @@
       margin: 24px auto 50px;
       padding: 20px;
 
-      background: #fff;
+      background: #ffffff;
+
       border-radius: 16px;
 
       box-shadow:
@@ -95,18 +100,25 @@
 
     #rankingList {
       list-style: none;
+
       margin: 0;
       padding: 0;
     }
 
     .ranking-item {
       display: grid;
-      grid-template-columns: 50px 1fr 80px;
+
+      grid-template-columns:
+        50px
+        1fr
+        80px;
+
       align-items: center;
 
       padding: 11px 4px;
 
-      border-bottom: 1px solid #eee;
+      border-bottom:
+        1px solid #eeeeee;
     }
 
     .ranking-item:last-child {
@@ -139,12 +151,14 @@
       inset: 0;
 
       display: none;
+
       justify-content: center;
       align-items: center;
 
       padding: 20px;
 
-      background: rgba(0, 0, 0, 0.65);
+      background:
+        rgba(0, 0, 0, 0.65);
 
       z-index: 9999;
     }
@@ -155,20 +169,23 @@
 
       padding: 26px 22px;
 
-      background: #fff;
+      background: #ffffff;
+
       border-radius: 20px;
 
       box-shadow:
-        0 12px 40px rgba(0, 0, 0, 0.3);
+        0 12px 40px
+        rgba(0, 0, 0, 0.30);
     }
 
     .modal-box h2 {
       margin: 0 0 12px;
+
       font-size: 30px;
     }
 
     .final-score-label {
-      color: #777;
+      color: #777777;
       font-size: 14px;
     }
 
@@ -180,7 +197,7 @@
     }
 
     /* =========================
-       입력창 공통
+       입력창
        ========================= */
 
     #nickname,
@@ -189,7 +206,7 @@
 
       padding: 12px;
 
-      border: 2px solid #ddd;
+      border: 2px solid #dddddd;
       border-radius: 10px;
 
       outline: none;
@@ -197,7 +214,8 @@
       font-size: 16px;
       text-align: center;
 
-      background: #fff;
+      background: #ffffff;
+      color: #222222;
     }
 
     #phone {
@@ -206,13 +224,13 @@
 
     #nickname:focus,
     #phone:focus {
-      border-color: #999;
+      border-color: #999999;
     }
 
     .privacy-note {
       margin-top: 8px;
 
-      color: #888;
+      color: #888888;
 
       font-size: 11px;
       line-height: 1.5;
@@ -240,8 +258,8 @@
     }
 
     #registerScore {
-      background: #222;
-      color: #fff;
+      background: #222222;
+      color: #ffffff;
     }
 
     #registerScore:disabled {
@@ -250,12 +268,13 @@
     }
 
     #restartButton {
-      background: #eee;
-      color: #222;
+      background: #eeeeee;
+      color: #222222;
     }
 
     #registerMessage {
       min-height: 22px;
+
       margin-top: 10px;
 
       font-size: 14px;
@@ -275,7 +294,13 @@
 
 <body>
 
-  <h1>🍉 수박게임</h1>
+  <!-- =========================
+       제목
+       ========================= -->
+
+  <h1>
+    🍉 수박게임
+  </h1>
 
 
   <!-- =========================
@@ -286,16 +311,20 @@
 
     <div>
       점수:
-      <span id="score">0</span>
+      <span id="score">
+        0
+      </span>
     </div>
 
     <div class="next-box">
+
       NEXT
 
       <img
         id="nextFruit"
         alt="다음 형태소"
       >
+
     </div>
 
   </div>
@@ -310,12 +339,13 @@
 
   <!-- =========================
        공개 랭킹
-       전화번호는 표시하지 않음
        ========================= -->
 
   <div class="ranking-box">
 
-    <h2>🏆 TOP 10</h2>
+    <h2>
+      🏆 TOP 10
+    </h2>
 
     <ul id="rankingList">
 
@@ -351,7 +381,9 @@
       </div>
 
 
-      <!-- 닉네임 -->
+      <!-- =====================
+           닉네임
+           ===================== -->
 
       <input
         id="nickname"
@@ -362,7 +394,10 @@
       >
 
 
-      <!-- 전화번호: 선택사항 -->
+      <!-- =====================
+           전화번호
+           선택사항
+           ===================== -->
 
       <input
         id="phone"
@@ -374,13 +409,19 @@
       >
 
 
+      <!-- =====================
+           개인정보 안내
+           ===================== -->
+
       <div class="privacy-note">
         전화번호는 상품 전달을 위한 연락 목적으로만 사용되며,
         입력하지 않아도 랭킹 등록이 가능합니다.
       </div>
 
 
-      <!-- 랭킹 등록 -->
+      <!-- =====================
+           랭킹 등록 버튼
+           ===================== -->
 
       <button
         id="registerScore"
@@ -391,10 +432,16 @@
       </button>
 
 
+      <!-- =====================
+           등록 결과
+           ===================== -->
+
       <div id="registerMessage"></div>
 
 
-      <!-- 다시하기 -->
+      <!-- =====================
+           다시하기
+           ===================== -->
 
       <button
         id="restartButton"
@@ -410,12 +457,17 @@
 
 
   <!-- =========================
-       라이브러리
+       Matter.js
        ========================= -->
 
   <script
     src="https://cdn.jsdelivr.net/npm/matter-js@0.20.0/build/matter.min.js"
   ></script>
+
+
+  <!-- =========================
+       Supabase
+       ========================= -->
 
   <script
     src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
@@ -423,16 +475,15 @@
 
 
   <!-- =========================
-       우리 JS
-       버전값은 캐시 방지용
+       프로젝트 JS
        ========================= -->
 
   <script
-    src="./supabase.js?v=20260930-1"
+    src="./supabase.js?v=20260930-3"
   ></script>
 
   <script
-    src="./game.js?v=20260930-1"
+    src="./game.js?v=20260930-3"
   ></script>
 
 </body>
