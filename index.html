@@ -60,12 +60,13 @@
 
       margin: 0 auto;
 
-      background: white;
+      background: #fff;
 
       border: 3px solid #222;
       border-radius: 14px;
 
       overflow: hidden;
+
       touch-action: none;
     }
 
@@ -81,7 +82,7 @@
       margin: 24px auto 50px;
       padding: 20px;
 
-      background: white;
+      background: #fff;
       border-radius: 16px;
 
       box-shadow:
@@ -101,7 +102,6 @@
     .ranking-item {
       display: grid;
       grid-template-columns: 50px 1fr 80px;
-
       align-items: center;
 
       padding: 11px 4px;
@@ -130,9 +130,12 @@
       font-weight: bold;
     }
 
+    /* =========================
+       게임오버 모달
+       ========================= */
+
     #gameOverModal {
       position: fixed;
-
       inset: 0;
 
       display: none;
@@ -152,8 +155,7 @@
 
       padding: 26px 22px;
 
-      background: white;
-
+      background: #fff;
       border-radius: 20px;
 
       box-shadow:
@@ -172,11 +174,17 @@
 
     #finalScore {
       margin: 6px 0 20px;
+
       font-size: 32px;
       font-weight: bold;
     }
 
-    #nickname {
+    /* =========================
+       입력창 공통
+       ========================= */
+
+    #nickname,
+    #phone {
       width: 100%;
 
       padding: 12px;
@@ -188,7 +196,33 @@
 
       font-size: 16px;
       text-align: center;
+
+      background: #fff;
     }
+
+    #phone {
+      margin-top: 8px;
+    }
+
+    #nickname:focus,
+    #phone:focus {
+      border-color: #999;
+    }
+
+    .privacy-note {
+      margin-top: 8px;
+
+      color: #888;
+
+      font-size: 11px;
+      line-height: 1.5;
+
+      word-break: keep-all;
+    }
+
+    /* =========================
+       버튼
+       ========================= */
 
     .modal-button {
       width: 100%;
@@ -207,11 +241,12 @@
 
     #registerScore {
       background: #222;
-      color: white;
+      color: #fff;
     }
 
     #registerScore:disabled {
       opacity: 0.5;
+      cursor: default;
     }
 
     #restartButton {
@@ -222,6 +257,7 @@
     #registerMessage {
       min-height: 22px;
       margin-top: 10px;
+
       font-size: 14px;
     }
 
@@ -234,36 +270,17 @@
         font-size: 16px;
       }
     }
-    #phone {
-  width: 100%;
-  margin-top: 8px;
-  padding: 12px;
-
-  border: 2px solid #ddd;
-  border-radius: 10px;
-
-  outline: none;
-
-  font-size: 16px;
-  text-align: center;
-}
-
-.privacy-note {
-  margin-top: 8px;
-
-  color: #888;
-
-  font-size: 11px;
-  line-height: 1.5;
-
-  word-break: keep-all;
-}
   </style>
 </head>
 
 <body>
 
   <h1>🍉 수박게임</h1>
+
+
+  <!-- =========================
+       점수 / NEXT
+       ========================= -->
 
   <div class="info">
 
@@ -277,37 +294,64 @@
 
       <img
         id="nextFruit"
-        alt="다음 공"
+        alt="다음 형태소"
       >
     </div>
 
   </div>
 
+
+  <!-- =========================
+       게임 화면
+       ========================= -->
+
   <div id="game"></div>
+
+
+  <!-- =========================
+       공개 랭킹
+       전화번호는 표시하지 않음
+       ========================= -->
 
   <div class="ranking-box">
 
     <h2>🏆 TOP 10</h2>
 
     <ul id="rankingList">
-      <li>랭킹 불러오는 중...</li>
+
+      <li>
+        랭킹 불러오는 중...
+      </li>
+
     </ul>
 
   </div>
+
+
+  <!-- =========================
+       게임오버 모달
+       ========================= -->
 
   <div id="gameOverModal">
 
     <div class="modal-box">
 
-      <h2>GAME OVER</h2>
+      <h2>
+        GAME OVER
+      </h2>
+
 
       <div class="final-score-label">
         최종 점수
       </div>
 
+
       <div id="finalScore">
         0
       </div>
+
+
+      <!-- 닉네임 -->
 
       <input
         id="nickname"
@@ -317,32 +361,45 @@
         autocomplete="off"
       >
 
+
+      <!-- 전화번호: 선택사항 -->
+
+      <input
+        id="phone"
+        type="tel"
+        maxlength="20"
+        placeholder="전화번호 (선택)"
+        inputmode="tel"
+        autocomplete="tel"
+      >
+
+
+      <div class="privacy-note">
+        전화번호는 상품 전달을 위한 연락 목적으로만 사용되며,
+        입력하지 않아도 랭킹 등록이 가능합니다.
+      </div>
+
+
+      <!-- 랭킹 등록 -->
+
       <button
         id="registerScore"
         class="modal-button"
+        type="button"
       >
-<input
-  id="phone"
-  type="tel"
-  maxlength="20"
-  placeholder="전화번호 (선택)"
-  inputmode="tel"
-  autocomplete="tel"
->
-
-<div class="privacy-note">
-  전화번호는 상품 전달을 위한 연락 목적으로만 사용되며,
-  입력하지 않아도 랭킹 등록이 가능합니다.
-</div>
-    
         🏆 랭킹 등록
       </button>
 
+
       <div id="registerMessage"></div>
+
+
+      <!-- 다시하기 -->
 
       <button
         id="restartButton"
         class="modal-button"
+        type="button"
       >
         다시하기
       </button>
@@ -350,6 +407,11 @@
     </div>
 
   </div>
+
+
+  <!-- =========================
+       라이브러리
+       ========================= -->
 
   <script
     src="https://cdn.jsdelivr.net/npm/matter-js@0.20.0/build/matter.min.js"
@@ -359,9 +421,19 @@
     src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
   ></script>
 
-  <script src="./supabase.js?v=20260927-1"></script>
 
-  <script src="./game.js?v=20260927-1"></script>
+  <!-- =========================
+       우리 JS
+       버전값은 캐시 방지용
+       ========================= -->
+
+  <script
+    src="./supabase.js?v=20260930-1"
+  ></script>
+
+  <script
+    src="./game.js?v=20260930-1"
+  ></script>
 
 </body>
 </html>
