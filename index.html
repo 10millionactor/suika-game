@@ -234,6 +234,30 @@
         font-size: 16px;
       }
     }
+    #phone {
+  width: 100%;
+  margin-top: 8px;
+  padding: 12px;
+
+  border: 2px solid #ddd;
+  border-radius: 10px;
+
+  outline: none;
+
+  font-size: 16px;
+  text-align: center;
+}
+
+.privacy-note {
+  margin-top: 8px;
+
+  color: #888;
+
+  font-size: 11px;
+  line-height: 1.5;
+
+  word-break: keep-all;
+}
   </style>
 </head>
 
@@ -297,6 +321,20 @@
         id="registerScore"
         class="modal-button"
       >
+<input
+  id="phone"
+  type="tel"
+  maxlength="20"
+  placeholder="전화번호 (선택)"
+  inputmode="tel"
+  autocomplete="tel"
+>
+
+<div class="privacy-note">
+  전화번호는 상품 전달을 위한 연락 목적으로만 사용되며,
+  입력하지 않아도 랭킹 등록이 가능합니다.
+</div>
+    
         🏆 랭킹 등록
       </button>
 
